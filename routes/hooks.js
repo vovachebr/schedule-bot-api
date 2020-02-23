@@ -6,6 +6,7 @@ const mongoClient = new MongoClient(CONNECTION_STRING, { useNewUrlParser: true }
 
 router.get("/", function(request, response){
     mongoClient.connect(function(err, client){
+        console.log(err, client);
         const db = client.db("shedule");
         const hooksCollection = db.collection("hooks");
 
