@@ -1,20 +1,9 @@
 require('dotenv').config();
-const { PORT, PUBLIC_PATH, INDEX_FILE, HOME_FILE } = process.env;
-const path = require('path');
+const { PORT } = process.env;
 const express = require('express');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const api = require('./routes');
-/*const cookieParser = require('cookie-parser');
-var cookieSession = require('cookie-session')*/
-
-//const low = require('lowdb');
-/*const FileSync = require('lowdb/adapters/FileSync', {
-    serialize: (data) => encrypt(JSON.stringify(data)),
-    deserialize: (data) => JSON.parse(decrypt(data))
-  });
-const db = low(new FileSync('db.json'));
-*/
 
 const app = express();
 /*app.use(cookieParser());
