@@ -1,4 +1,4 @@
-const { CONNECTION_STRING } = process.env;
+const { MONGODB_URI } = process.env;
 
 const router = require('express').Router();
 const request = require('request');
@@ -9,7 +9,7 @@ const hooks = require('./hooks');
 
 router.use('/hooks', hooks);
 
-const mongoClient = new MongoClient(CONNECTION_STRING, { useNewUrlParser: true });
+const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
 const j = schedule.scheduleJob('0 0 9 * * *', function(){
     mongoClient.connect(function(err, client){

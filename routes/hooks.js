@@ -1,23 +1,25 @@
-const { CONNECTION_STRING } = process.env;
+const { MONGODB_URI } = process.env;
 
 const router = require('express').Router();
 const MongoClient = require("mongodb").MongoClient;
-const mongoClient = new MongoClient(CONNECTION_STRING, { useNewUrlParser: true });
+const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
 router.get("/", function(request, response){
     mongoClient.connect(function(err, client){
-        console.log("CONNECTION_STRING:", CONNECTION_STRING);
+        console.log("MONGODB_URI:", MONGODB_URI);
         console.log(err, client);
-        const db = client.db("shedule");
+        const db = client.db("heroku_4x7x2rvn");
         const hooksCollection = db.collection("hooks");
 
         if(err){
             response.json({ success: false, error: err});
-            return
+            client.close();
+            return;
         } 
         
-        hooksCollection.find({}).toArray(function(errHook, hooks){
+        hooksCollection.find().toArray(function(errHook, hooks){
             response.json({ success: true, hooks: hooks});
+            client.close();
         });
 
     });
@@ -36,6 +38,7 @@ router.post("/add", function(request, response){
 
         if(err){
             response.json({ success: false, error: err});
+            client.close();
             return;
         } 
 
@@ -50,7 +53,8 @@ router.post("/add", function(request, response){
 
                 if(err){
                     response.json({ success: false, error: err});
-                    return
+                    client.close();
+                    return;
                 } 
 
                 hooksCollection.find({}).toArray(function(errHook, hooks){
