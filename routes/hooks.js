@@ -31,7 +31,7 @@ router.post("/add", function(request, response){
     }
 
     mongoClient.connect(function(err, client){
-        const db = client.db("shedule");
+        const db = client.db("heroku_4x7x2rvn");
         const hooksCollection = db.collection("hooks");
 
         if(err){
