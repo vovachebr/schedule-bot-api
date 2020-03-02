@@ -6,16 +6,17 @@ const schedule = require('node-schedule');
 const MongoClient = require("mongodb").MongoClient;
 
 const hooks = require('./hooks');
+const lessons = require('./lessons');
 
 router.use('/hooks', hooks);
-
-const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
+router.use('/lessons', lessons);
 
 const j = schedule.scheduleJob('0 0 9 * * *', function(){
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
+
     mongoClient.connect(function(err, client){
-        console.log('Connected to DB!');
       
-        const db = client.db("shedule");
+        const db = client.db("heroku_4x7x2rvn");
         const lessonsCollection = db.collection("lessons");
         const hooksCollection = db.collection("hooks");
      
@@ -23,11 +24,10 @@ const j = schedule.scheduleJob('0 0 9 * * *', function(){
 
         if(err) return console.log(err);
         
-        lessonsCollection.find({date:today, isSent: false}).toArray(function(errLesson, lessons){
-            console.log(lessons);
+        lessonsCollection.find({date:today, isSent: false}).toArray(function(errLesson, lessons = []){
 
             lessons.forEach(lesson => {
-                hooksCollection.findOne({channel: lesson.channel}, function(errHook, hook){
+                hooksCollection.findOne({group: lesson.group}, function(errHook, hook){
                     sendLessonNotification(lesson, hook)
                 })
             })
@@ -38,8 +38,8 @@ const j = schedule.scheduleJob('0 0 9 * * *', function(){
     });
 });
 
-router.post("/sendInstantMessage", function(req, res) {
-    const {hook, text} = req.body;
+router.post("/sendInstantMessage", function(request, response) {
+    const {hook, text} = request.body;
     data = [
         {
             "type": "section",
@@ -50,6 +50,7 @@ router.post("/sendInstantMessage", function(req, res) {
         }
     ];
     sendMessage(hook, data);
+    response.json({ success: true});
 });
 
 function sendMessage(hook, data){
@@ -116,7 +117,7 @@ function getLessonText(lesson){
 }
 /**
  * "0" :{
-        "channel":"bjs-test2",
+        "group":"unknown",
         "date": "2020-02-09",
         "time": "18:30",
         "teacher": "Владимир Чебукин",

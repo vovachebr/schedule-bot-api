@@ -6,8 +6,6 @@ const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
 router.get("/", function(request, response){
     mongoClient.connect(function(err, client){
-        console.log("MONGODB_URI:", MONGODB_URI);
-        console.log(err, client);
         const db = client.db("heroku_4x7x2rvn");
         const hooksCollection = db.collection("hooks");
 
