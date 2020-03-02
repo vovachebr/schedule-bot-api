@@ -35,29 +35,29 @@ router.post("/add", function(request, response){
         const hooksCollection = db.collection("hooks");
 
         if(err){
-            response.json({ success: false, error: err});
             client.close();
+            response.json({ success: false, error: err});
             return;
         } 
 
-        hooksCollection.find({$or: [{value},{group},{channel}]}).toArray(function(errHook, hooks){
+        hooksCollection.find({$or: [{value},{group},{channel}]}).toArray(function(errHook, hooks = []){
             if(!hooks && hooks.length){
-                response.json({ success: false, error: "Хук с такими значениями уже существует"});
                 client.close();
+                response.json({ success: false, error: "Хук с такими значениями уже существует"});
                 return;
             }
         
             hooksCollection.insertOne({ value, group, channel },function(err, result){
 
                 if(err){
-                    response.json({ success: false, error: err});
                     client.close();
+                    response.json({ success: false, error: err});
                     return;
                 } 
 
                 hooksCollection.find({}).toArray(function(errHook, hooks){
-                    response.json({ success: true, hooks: hooks});
                     client.close();
+                    response.json({ success: true, hooks: hooks});
                 });
             });
         });
