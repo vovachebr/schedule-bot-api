@@ -2,12 +2,10 @@ const { MONGODB_URI } = process.env;
 
 const router = require('express').Router();
 const MongoClient = require("mongodb").MongoClient;
-const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
 router.get("/", function(request, response){
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
     mongoClient.connect(function(err, client){
-        console.log("MONGODB_URI:", MONGODB_URI);
-        console.log(err, client);
         const db = client.db("heroku_4x7x2rvn");
         const hooksCollection = db.collection("hooks");
 
@@ -31,9 +29,10 @@ router.post("/add", function(request, response){
         response.json({ success: false, error: "Отсутствуют данные"});
         return;
     }
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
     mongoClient.connect(function(err, client){
-        const db = client.db("shedule");
+        const db = client.db("heroku_4x7x2rvn");
         const hooksCollection = db.collection("hooks");
 
         if(err){
@@ -73,18 +72,50 @@ router.post("/remove", function(request, response){
         return;
     }
 
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
+
     mongoClient.connect(function(err, client){
-        const db = client.db("shedule");
+        const db = client.db("heroku_4x7x2rvn");
         const hooksCollection = db.collection("hooks");
 
         if(err){
             response.json({ success: false, error: err});
+            client.close();
             return;
         } 
 
         hooksCollection.remove({value}).then(result => {
             hooksCollection.find({}).toArray(function(errHook, hooks){
                 response.json({ success: true, hooks: hooks});
+                client.close();
+            });
+        });
+    });
+});
+
+router.post("/update", function(request, response){
+    let { oldValue, value, channel, group } = request.body;
+    if(!oldValue){
+        response.json({ success: false, error: "value отсутствует"});
+        return;
+    }
+
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
+
+    mongoClient.connect(function(err, client){
+        const db = client.db("heroku_4x7x2rvn");
+        const hooksCollection = db.collection("hooks");
+
+        if(err){
+            response.json({ success: false, error: err});
+            client.close();
+            return;
+        } 
+
+        hooksCollection.findOneAndUpdate({value: oldValue}, {$set: {value, channel, group}}).then(result => {
+            hooksCollection.find({}).toArray(function(errHook, hooks){
+                response.json({ success: true, hooks: hooks});
+                client.close();
             });
         });
     });

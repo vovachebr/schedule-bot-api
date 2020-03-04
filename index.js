@@ -18,7 +18,7 @@ app.use('/', api);
 app.use(morgan('tiny'));
 
 app.get('*', function (request, response) {
-      response.send("Get route");
+  response.send("Get route");
 });
 
 app.listen(PORT, () => console.log(`Server started at ${PORT}`));
