@@ -88,7 +88,6 @@ function sendLessonNotification(lesson, hook){
 function getLessonText(lesson){
     let template = "<!channel> \n Добрый день! \n Сегодня, {date}, в {time} по московскому времени состоится лекция «{lecture}». Ее проведет {teacher}. {additional} \n\n Ссылку на трансляцию вы найдете в личном кабинете и в письме, которое сегодня придет вам на почту за два часа до лекции.";
     options = {
-        year: 'numeric',
         month: 'numeric',
         day: 'numeric'
     };
@@ -108,7 +107,7 @@ function getLessonText(lesson){
         "декабря"][num];
     const splittedData = todayDay.split("-");
     splittedData[1] = getMounth(+splittedData[1] - 1);
-    template = template.replace("{date}", splittedData.join(' '));
+    template = template.replace("{date}", splittedData.reverse().join(' '));
     template = template.replace("{time}", lesson.time);
     template = template.replace("{teacher}", lesson.teacher);
     template = template.replace("{lecture}", lesson.lecture);
