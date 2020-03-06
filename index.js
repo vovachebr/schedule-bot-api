@@ -15,7 +15,7 @@ app.use(cookieSession({
 app.use(morgan('tiny'));
 
 app.use(bodyParser.json());
-app.use('/', api);
+app.use('/api', api);
 app.use(morgan('tiny'));
 
 app.use(express.static(__dirname));
