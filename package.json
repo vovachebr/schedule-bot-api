@@ -5,7 +5,11 @@
   "main": "index.js",
   "homepage": "https://vovachebr.github.io/slack-shedule-bot/public",
   "scripts": {
-    "start": "nodemon index.js"
+    "client-install": "npm install --prefix client",
+    "start": "node index.js",
+    "server": "nodemon index.js",
+    "client": "npm start --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
   },
   "author": "Vladimir Chebukin",
   "license": "ISC",
