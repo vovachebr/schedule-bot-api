@@ -107,7 +107,8 @@ function getLessonText(lesson){
         "декабря"][num];
     const splittedData = todayDay.split("-");
     splittedData[1] = getMounth(+splittedData[1] - 1);
-    template = template.replace("{date}", splittedData.reverse().join(' '));
+    splittedData[0] = +splittedData[0];
+    template = template.replace("{date}", splittedData.join(' '));
     template = template.replace("{time}", lesson.time);
     template = template.replace("{teacher}", lesson.teacher);
     template = template.replace("{lecture}", lesson.lecture);
