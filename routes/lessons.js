@@ -117,7 +117,9 @@ router.get("/getLastLecture:lecture?", function(request, response){
     });
 });
 
-router.get("/", function(request, response){
+router.get("/:isSent?", function(request, response){
+    const isSent = request.query.isSent === "true";
+
     const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
     mongoClient.connect(function(err, client){
@@ -130,7 +132,7 @@ router.get("/", function(request, response){
             return;
         } 
 
-        lessonsCollection.find().toArray(function(errLessons, lessons){
+        lessonsCollection.find({isSent}).toArray(function(errLessons, lessons){
             response.json({ success: true, lessons: lessons || []});
             client.close();
         });
