@@ -11,7 +11,7 @@ const lessons = require('./lessons');
 router.use('/hooks', hooks);
 router.use('/lessons', lessons);
 
-const j = schedule.scheduleJob('0 0 9 * * *', function(){
+const j = schedule.scheduleJob('* * 10 * * *', function(){
     const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
     mongoClient.connect(function(err, client){
