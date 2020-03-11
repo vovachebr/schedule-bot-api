@@ -5,7 +5,6 @@ const path = require('path');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const api = require('./routes');
-const bot = require('./telegramBot');
 
 const app = express();
 /*app.use(cookieParser());

@@ -4,6 +4,7 @@ const router = require('express').Router();
 const request = require('request');
 const schedule = require('node-schedule');
 const MongoClient = require("mongodb").MongoClient;
+const bot = require('../telegramBot');
 
 const hooks = require('./hooks');
 const lessons = require('./lessons');
@@ -41,8 +42,36 @@ const j = schedule.scheduleJob('0 0 9 * * *', function(){
 });
 
 router.post("/sendInstantMessage", function(request, response) {
-    const {hook, text} = request.body;
-    data = [
+    const {channel, text} = request.body;
+    const configer = {
+        slack: sendSlackMessage,
+        telegram: sendTelegramMessage
+    };
+
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
+
+    mongoClient.connect(function(err, client){
+        const db = client.db("heroku_4x7x2rvn");
+        const hooksCollection = db.collection("hooks");
+     
+        hooksCollection.find({channel}).toArray(function(errHook, hooks = []){
+            for (let i = 0; i < hooks.length; i++) {
+                const hook = hooks[i];
+                const sender = configer[hook.messegerType];
+                sender(hook, text);
+            }
+            response.json({ success: true});
+            client.close();
+        })
+
+    });
+
+    
+});
+
+function sendSlackMessage(hook, text){
+    const uri = hook.value;
+    const sendData = [
         {
             "type": "section",
             text:{
@@ -50,20 +79,21 @@ router.post("/sendInstantMessage", function(request, response) {
                 text
             }
         }
-    ];
-    sendMessage(hook, data);
-    response.json({ success: true});
-});
+    ]; 
 
-function sendMessage(hook, data){
     options = {
-        uri: hook,
+        uri,
         method: 'POST',
         json: {
-            blocks: data
+            blocks: sendData
         }
     }
     request(options);
+}
+
+function sendTelegramMessage(hook, message){
+    const { channelId } = hook;
+    bot.sendMessage(channelId, message);
 }
 
 function sendLessonNotification(lesson, hook){
@@ -84,7 +114,7 @@ function sendLessonNotification(lesson, hook){
             "alt_text": lesson.imageUrl
         })
     }
-    sendMessage(hook.value, data);
+    sendSlackMessage(hook.value, data);
 }
 
 function getLessonText(lesson){

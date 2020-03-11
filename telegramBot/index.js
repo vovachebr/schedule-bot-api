@@ -28,7 +28,8 @@ bot.onText(/\/create_hook/, (message) => {
                 return;
             }
         
-            hooksCollection.insertOne({ channelId: message.chat.id, channel: message.chat.title, messegerType: "telegram" },function(err, result){
+            const group = message.text.split(" ").slice(1).join();
+            hooksCollection.insertOne({group, channelId: message.chat.id, channel: message.chat.title, messegerType: "telegram" },function(err, result){
                 
                 if(err){
                     client.close();
