@@ -7,11 +7,13 @@ const MongoClient = require("mongodb").MongoClient;
 
 const hooks = require('./hooks');
 const lessons = require('./lessons');
+//const slackCommands = require('./slackCommands');
 
 router.use('/hooks', hooks);
 router.use('/lessons', lessons);
+//router.use('/commands', slackCommands);
 
-const j = schedule.scheduleJob('* * 9 * * *', function(){
+const j = schedule.scheduleJob('0 0 9 * * *', function(){
     const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
     mongoClient.connect(function(err, client){
