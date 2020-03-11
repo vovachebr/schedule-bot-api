@@ -42,13 +42,13 @@ router.post("/add", function(request, response){
         } 
 
         hooksCollection.find({$or: [{value},{group},{channel}]}).toArray(function(errHook, hooks = []){
-            if(!hooks && hooks.length){
+            if(hooks.length > 0){
                 client.close();
                 response.json({ success: false, error: "Хук с такими значениями уже существует"});
                 return;
             }
         
-            hooksCollection.insertOne({ value, group, channel },function(err, result){
+            hooksCollection.insertOne({ value, group, channel, messegerType: "slack" },function(err, result){
 
                 if(err){
                     client.close();
