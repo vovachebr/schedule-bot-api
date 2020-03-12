@@ -73,7 +73,7 @@ function sendSlackMessage(hook, data){
                 "type": "section",
                 text:{
                     "type": "mrkdwn",
-                    text
+                    data
                 }
             }
         ]; 
