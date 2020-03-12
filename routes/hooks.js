@@ -24,7 +24,7 @@ router.get("/", function(request, response){
 });
 
 router.post("/add", function(request, response){
-    let { value, group, channel } = request.body;
+    let { value, group, channel, channelId } = request.body;
     if(!value || !group || !channel){
         response.json({ success: false, error: "Отсутствуют данные"});
         return;
@@ -48,7 +48,7 @@ router.post("/add", function(request, response){
                 return;
             }
         
-            hooksCollection.insertOne({ value, group, channel, messegerType: "slack" },function(err, result){
+            hooksCollection.insertOne({ value, group, channel, channelId, messegerType: "slack" },function(err, result){
 
                 if(err){
                     client.close();
@@ -94,7 +94,7 @@ router.post("/remove", function(request, response){
 });
 
 router.post("/update", function(request, response){
-    let { oldValue, value, channel, group } = request.body;
+    let { oldValue, value, channel, group, channelId } = request.body;
     if(!oldValue){
         response.json({ success: false, error: "value отсутствует"});
         return;
@@ -112,7 +112,7 @@ router.post("/update", function(request, response){
             return;
         } 
 
-        hooksCollection.findOneAndUpdate({value: oldValue}, {$set: {value, channel, group}}).then(result => {
+        hooksCollection.findOneAndUpdate({value: oldValue}, {$set: {value, channel, group, channelId}}).then(result => {
             hooksCollection.find({}).toArray(function(errHook, hooks){
                 response.json({ success: true, hooks: hooks});
                 client.close();
