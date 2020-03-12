@@ -67,13 +67,13 @@ router.post("/sendInstantMessage", function(request, response) {
 function sendSlackMessage(hook, data){
     const uri = hook.value;
     let sendData = data;
-    if (typeof sendData === "string"){
+    if (typeof data === "string"){
         sendData = [
             {
                 "type": "section",
                 text:{
                     "type": "mrkdwn",
-                    text
+                    text: data
                 }
             }
         ]; 
