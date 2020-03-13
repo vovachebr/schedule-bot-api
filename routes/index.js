@@ -12,7 +12,7 @@ const lessons = require('./lessons');
 router.use('/hooks', hooks);
 router.use('/lessons', lessons);
 
-const j = schedule.scheduleJob('01 00 9 * * *', function(){
+const j = schedule.scheduleJob('/30 00 9 * * *', function(){
     const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
     mongoClient.connect(function(err, client){
