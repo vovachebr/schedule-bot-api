@@ -23,8 +23,4 @@ app.get("/*", function(req, res) {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-app.get('*', function (request, response) {
-  response.send("Get route");
-});
-
 app.listen(PORT, () => console.log(`Server started at ${PORT}`));

@@ -5,6 +5,7 @@ const {TELEGRAM_BOT_TOKEN, MONGODB_URI} = process.env;
 
 const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, {
     polling: true
+    //TODO: изменить на webhook
 });
 
 bot.onText(/\/create_hook/, (message) => {
@@ -45,7 +46,6 @@ bot.onText(/\/create_hook/, (message) => {
 });
 
 bot.onText(/\/remove_hook/, (message) => {
-    console.log(message);
     const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
     mongoClient.connect(function(err, client){
@@ -66,9 +66,7 @@ bot.onText(/\/remove_hook/, (message) => {
             }
         
             hooksCollection.remove({channelId: message.chat.id}).then(result => {
-                hooksCollection.find({}).toArray(function(errHook, hooks){
                     bot.sendMessage(message.chat.id, "Хук успешно удалён");
-                    client.close();
                 });
             });
         });
