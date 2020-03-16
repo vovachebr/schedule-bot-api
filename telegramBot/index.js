@@ -38,6 +38,7 @@ bot.onText(/\/create_hook/, (message) => {
                 } 
                 
                 bot.sendMessage(message.chat.id, "Успешно добавлено.");
+                client.close();
             });
         });
     });
