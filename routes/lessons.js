@@ -89,6 +89,34 @@ router.post("/remove", function(request, response){
     });
 });
 
+router.post("/update", function(request, response){
+    let { id, group, date, time, teacher, lecture, isSent } = request.body;
+    if(!id){
+        response.json({ success: false, error: "id отсутствует"});
+        return;
+    }
+
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
+
+    mongoClient.connect(function(err, client){
+        const db = client.db("heroku_4x7x2rvn");
+        const lessonsCollection = db.collection("lessons");
+
+        if(err){
+            response.json({ success: false, error: err});
+            client.close();
+            return;
+        } 
+
+        lessonsCollection.findOneAndUpdate({id}, {$set: {group, date, time, teacher, lecture, isSent}}).then(result => {
+            lessonsCollection.find({}).toArray(function(errLessons, lessons){
+                response.json({ success: true, lessons});
+                client.close();
+            });
+        });
+    });
+});
+
 router.get("/getLastLecture:lecture?", function(request, response){
     const { lecture } = request.query;
 
@@ -131,6 +159,26 @@ router.get("/:isSent?", function(request, response){
             client.close();
             return;
         } 
+
+        lessonsCollection.find({isSent}).toArray(function(errLessons, lessons){
+            response.json({ success: true, lessons: lessons || []});
+            client.close();
+        });
+
+    });
+});
+
+router.post("/sendNotification", function(request, response){
+    const { id } = request.query;
+
+    response.json({ success: false, error: "Не реализовано"});
+    return;
+
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
+
+    mongoClient.connect(function(err, client){
+        const db = client.db("heroku_4x7x2rvn");
+        const lessonsCollection = db.collection("lessons");
 
         lessonsCollection.find({isSent}).toArray(function(errLessons, lessons){
             response.json({ success: true, lessons: lessons || []});
