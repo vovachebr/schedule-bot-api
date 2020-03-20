@@ -12,7 +12,7 @@ const lessons = require('./lessons');
 router.use('/hooks', hooks);
 router.use('/lessons', lessons);
 
-const j = schedule.scheduleJob('/30 1 9 * * *', function(){
+const j = schedule.scheduleJob('/5 * 9 * * *', function(){
     const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
     mongoClient.connect(function(err, client){
@@ -31,11 +31,11 @@ const j = schedule.scheduleJob('/30 1 9 * * *', function(){
             lessons.forEach(lesson => {
                 hooksCollection.findOne({group: lesson.group}, function(errHook, hook){
                     sendLessonNotification(lesson, hook)
-                    lessonsCollection.updateMany({date:today}, {$set: {isSent: true}}).
-                        then(() => client.close());
+                    
                 })
             })
-        });
+            lessonsCollection.updateMany({date:today}, {$set: {isSent: true}}).then(() => client.close())
+        })
     });
 });
 

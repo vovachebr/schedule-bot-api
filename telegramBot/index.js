@@ -66,8 +66,7 @@ bot.onText(/\/remove_hook/, (message) => {
             }
         
             hooksCollection.remove({channelId: message.chat.id}).then(result => {
-                    bot.sendMessage(message.chat.id, "Хук успешно удалён");
-                });
+                bot.sendMessage(message.chat.id, "Хук успешно удалён");
             });
         });
     });
