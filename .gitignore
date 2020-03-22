@@ -108,7 +108,10 @@ package-lock.json
 .eslintrc.json
 Настройки.txt
 lessonMessageOptions.json
-README.md
 .vs/slnx.sqlite
 .vs/VSWorkspaceState.json
 .vs/slack-shedulebot-server/v15/.suo
+
+# IDE
+/.idea
+/.vscode
