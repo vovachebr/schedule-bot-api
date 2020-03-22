@@ -12,7 +12,7 @@ const lessons = require('./lessons');
 router.use('/hooks', hooks);
 router.use('/lessons', lessons);
 
-const j = schedule.scheduleJob('/5 * 9 * * *', function(){
+const j = schedule.scheduleJob('/5 * * * * *', function(){
     const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
     mongoClient.connect(function(err, client){
@@ -100,6 +100,7 @@ function sendTelegramMessage(hook, message){
 }
 
 function sendLessonNotification(lesson, hook){
+    //TODO: добавить отправку в телеграмм
     text = getLessonText(lesson);
     data = [
         {
