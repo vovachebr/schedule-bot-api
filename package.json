@@ -1,7 +1,7 @@
 {
   "name": "slack-sheduler-bot",
   "version": "1.0.0",
-  "description": "Sheduler lessons application",
+  "description": "Scheduler lessons application",
   "main": "index.js",
   "homepage": "https://vovachebr.github.io/slack-shedule-bot/public",
   "scripts": {
