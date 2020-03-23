@@ -2,7 +2,7 @@ const { MONGODB_URI } = process.env;
 
 const router = require('express').Router();
 const request = require('request');
-const CronJob = require('cron').CronJob;
+//const CronJob = require('cron').CronJob; //TODO: remove it!
 const MongoClient = require("mongodb").MongoClient;
 const bot = require('../telegramBot');
 
@@ -12,8 +12,8 @@ const lessons = require('./lessons');
 router.use('/hooks', hooks);
 router.use('/lessons', lessons);
 
-const job = new CronJob('00 00 9 * * *', function(){
-    console.log("tick tack");
+function schedule(){
+    console.log("tick tack", MONGODB_URI);
     const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
     mongoClient.connect(function(err, client){
@@ -38,8 +38,10 @@ const job = new CronJob('00 00 9 * * *', function(){
             lessonsCollection.updateMany({date:today}, {$set: {isSent: true}}).then(() => client.close())
         })
     });
-});
-job.start();
+}
+
+//const job = new CronJob('00 00 9 * * *', schedule);
+//job.start();
 
 router.post("/sendInstantMessage", function(request, response) {
     const {channel, text} = request.body;
@@ -154,4 +156,4 @@ function getLessonText(lesson){
     return template;
 }
 
-module.exports = router;
+module.exports = {router, schedule};
