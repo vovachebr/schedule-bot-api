@@ -2,7 +2,7 @@ const { MONGODB_URI } = process.env;
 
 const router = require('express').Router();
 const request = require('request');
-const schedule = require('node-schedule');
+const CronJob = require('cron').CronJob;
 const MongoClient = require("mongodb").MongoClient;
 const bot = require('../telegramBot');
 
@@ -12,7 +12,7 @@ const lessons = require('./lessons');
 router.use('/hooks', hooks);
 router.use('/lessons', lessons);
 
-const j = schedule.scheduleJob('*/5 * 9 * * *', function(){
+const job = new CronJob('00 00 9 * * *', function(){
     const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
     mongoClient.connect(function(err, client){
@@ -38,6 +38,7 @@ const j = schedule.scheduleJob('*/5 * 9 * * *', function(){
         })
     });
 });
+job.start();
 
 router.post("/sendInstantMessage", function(request, response) {
     const {channel, text} = request.body;
