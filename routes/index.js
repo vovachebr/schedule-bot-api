@@ -146,8 +146,10 @@ function getLessonText(lesson){
         "ноября",
         "декабря"][num];
     const splittedData = todayDay.split("-");
+    console.log("splittedData - before ", splittedData);
     splittedData[0] = getMounth(+splittedData[0] - 1);
     splittedData[1] = +splittedData[1];
+    console.log("splittedData - after ", splittedData);
     template = template.replace("{date}", splittedData.reverse().join(' '));
     template = template.replace("{time}", lesson.time);
     template = template.replace("{teacher}", lesson.teacher);
