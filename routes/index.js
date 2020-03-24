@@ -131,7 +131,7 @@ function getLessonText(lesson){
         month: 'numeric',
         day: 'numeric'
     };
-    let todayDay = new Date().toLocaleString("ru", options);
+    let todayDay = new Date().toISOString().slice(0,10);
     const getMounth = (num) => [
         "января",
         "февраля",
