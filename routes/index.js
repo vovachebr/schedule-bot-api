@@ -39,7 +39,6 @@ function schedule(){
         })
     });
 }
-
 //const job = new CronJob('00 00 9 * * *', schedule);
 //job.start();
 
@@ -131,7 +130,7 @@ function getLessonText(lesson){
         month: 'numeric',
         day: 'numeric'
     };
-    let todayDay = new Date().toISOString().slice(0,10);
+    let todayDay = new Date().toISOString().slice(5,10);
     const getMounth = (num) => [
         "января",
         "февраля",
@@ -146,10 +145,8 @@ function getLessonText(lesson){
         "ноября",
         "декабря"][num];
     const splittedData = todayDay.split("-");
-    console.log("splittedData - before ", splittedData);
     splittedData[0] = getMounth(+splittedData[0] - 1);
     splittedData[1] = +splittedData[1];
-    console.log("splittedData - after ", splittedData);
     template = template.replace("{date}", splittedData.reverse().join(' '));
     template = template.replace("{time}", lesson.time);
     template = template.replace("{teacher}", lesson.teacher);
