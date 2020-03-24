@@ -14,7 +14,7 @@
 * предоставление данных [фронтенду проекта](https://github.com/vovachebr/schedule-bot-ui)
 * работа с MongoDB для хранения данных 
 * взаимодействие с API Slack и Telegram
-* для выполнения задач по расписанию используется планировщик `node-schedule` 
+* для выполнения задач по расписанию используется [Heroku Scheduler](https://devcenter.heroku.com/articles/scheduler) 
 
 ### База данных
 
