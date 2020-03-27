@@ -2,7 +2,6 @@ const { MONGODB_URI } = process.env;
 
 const router = require('express').Router();
 const request = require('request');
-//const CronJob = require('cron').CronJob; //TODO: remove it!
 const MongoClient = require("mongodb").MongoClient;
 const bot = require('../telegramBot');
 
@@ -39,8 +38,6 @@ function schedule(){
         })
     });
 }
-//const job = new CronJob('00 00 9 * * *', schedule);
-//job.start();
 
 router.post("/sendInstantMessage", function(request, response) {
     const {channel, text} = request.body;
