@@ -7,11 +7,6 @@ const bodyParser = require('body-parser');
 const api = require('./routes').router;
 
 const app = express();
-/*app.use(cookieParser());
-app.use(cookieSession({
-  name: 'session',
-  keys: ['authorized', 'login']
-}))*/
 app.use(morgan('tiny'));
 
 app.use(bodyParser.json());
