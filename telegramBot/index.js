@@ -72,4 +72,46 @@ bot.onText(/\/remove_hook/, (message) => {
     });
 });
 
+bot.onText(/\/when_lesson/, (message) => {
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
+
+    mongoClient.connect(function(err, client){
+        const db = client.db("heroku_4x7x2rvn");
+        const hooksCollection = db.collection("hooks");
+        const lessonsCollection = db.collection("lessons");
+
+        if(err){
+            client.close();
+            bot.sendMessage(message.chat.id, `Ошибка: ${JSON.stringify(err)}`);
+            return;
+        } 
+
+        hooksCollection.find({$or: [{channelId: message.chat.id},{group: message.chat.title}]}).toArray(function(errHook, hooks = []){
+            if(hooks.length == 0){
+                client.close();
+                bot.sendMessage(message.chat.id, "Хук уже отсутствует");
+                return;
+            }
+        
+            lessonsCollection.find({group: hooks[0].group}).toArray((errLesson, lessons = []) => {
+                if(lessons.length === 0){
+                    bot.sendMessage(message.chat.id, "Занятие не найдено");
+                }
+
+                let nearestLesson = lessons[0];
+                for (const lesson of lessons) {
+                    if(new Date(lesson.date) < new Date(nearestLesson.date))
+                        nearestLesson = lesson;
+                }
+                bot.sendMessage(message.chat.id, 
+                `Дата ближайшего занятия: ${nearestLesson.date}.
+Время: ${nearestLesson.time}.
+Преподаватель: ${nearestLesson.teacher}.
+Тема: "${nearestLesson.lecture}".`);
+                client.close();
+            });
+        });
+    });
+});
+
 module.exports = bot;
