@@ -37,7 +37,7 @@ function schedule(){
 function sendLessonNotification(lesson, hook){
     const configuration = {
         slack: (lesson, hook) => {
-            text = getSlackLessonText(lesson);
+            let text = getLessonText(lesson);
             data = [
                 {
                     "type": "section",
@@ -57,14 +57,20 @@ function sendLessonNotification(lesson, hook){
             sendSlackMessage(hook, data);
         },
         telegram: (lesson, hook) => {
-            //TODO: добавить отправку в телеграмм
+            let text = getLessonText(lesson);
+            text = text.replace("<!channel> \n ", ""); // удаление общей нотификации
+            if(lesson.imageUrl){
+                bot.sendPhoto(hook.channelId, lesson.imageUrl, {caption: text});
+            }else{
+                bot.sendMessage(hook.channelId, text);
+            }
         }
     }
 
     configuration[hook.messegerType](lesson, hook); // Вызов конфигурации
 }
 
-function getSlackLessonText(lesson){
+function getLessonText(lesson){
     let template = "<!channel> \n Добрый день! \n Сегодня, {date}, в {time} по московскому времени состоится лекция «{lecture}». Ее проведет {teacher}. {additional} \n\n Ссылку на трансляцию вы найдете в личном кабинете и в письме, которое сегодня придет вам на почту за два часа до лекции.";
     options = {
         month: 'numeric',
