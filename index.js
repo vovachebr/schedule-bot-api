@@ -10,6 +10,7 @@ const app = express();
 app.use(morgan('tiny'));
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/api', api);
 
 app.use(express.static(__dirname));

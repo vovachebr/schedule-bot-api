@@ -6,9 +6,11 @@ const schedule = require('../schedule');
 
 const hooks = require('./hooks');
 const lessons = require('./lessons');
+const commands = require('./commands');
 
 router.use('/hooks', hooks);
 router.use('/lessons', lessons);
+router.use('/commands', commands);
 
 router.post("/sendInstantMessage", function(request, response) {
     const {channel, text} = request.body;
