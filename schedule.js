@@ -54,6 +54,10 @@ function sendLessonNotification(lesson, hook){
                     "alt_text": lesson.imageUrl
                 })
             }
+            data = {
+                text,
+                blocks: data
+            }
             sendSlackMessage(hook, data);
         },
         telegram: (lesson, hook) => {
@@ -105,7 +109,8 @@ function sendSlackMessage(hook, data){
     const uri = hook.value;
     let sendData = data;
     if (typeof data === "string"){
-        sendData = [
+        sendData = {
+            blocks: [
             {
                 "type": "section",
                 text:{
@@ -113,15 +118,13 @@ function sendSlackMessage(hook, data){
                     text: data
                 }
             }
-        ]; 
+        ]}; 
     }
         
     options = {
         uri,
         method: 'POST',
-        json: {
-            blocks: sendData
-        }
+        json: sendData
     }
     request(options, function (error, response, body) {
         //TODO: удалить это позже (используется для отладки HTTP запросов в слак)
