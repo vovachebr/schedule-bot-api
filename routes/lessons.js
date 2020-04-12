@@ -1,5 +1,6 @@
 const { MONGODB_URI } = process.env;
 
+const schedule = require('../schedule');
 const guid = require('guid');
 const router = require('express').Router();
 const MongoClient = require("mongodb").MongoClient;
@@ -169,22 +170,23 @@ router.get("/:isSent?", function(request, response){
 });
 
 router.post("/sendNotification", function(request, response){
-    const { id } = request.query;
-
-    response.json({ success: false, error: "Не реализовано"});
-    return;
+    const { id } = request.body;
 
     const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
     mongoClient.connect(function(err, client){
         const db = client.db("heroku_4x7x2rvn");
         const lessonsCollection = db.collection("lessons");
+        const hooksCollection = db.collection("hooks");
 
-        lessonsCollection.find({isSent}).toArray(function(errLessons, lessons){
-            response.json({ success: true, lessons: lessons || []});
-            client.close();
-        });
-
+        lessonsCollection.findOne({id}).then(lesson => {
+            hooksCollection.findOne({group: lesson.group}).then(hook => {
+                schedule.sendLessonNotification(lesson, hook)
+                
+                response.json({ success: true, data:"Уведомление отправлено"});
+                lessonsCollection.updateMany({id}, {$set: {isSent: true}}).then(() => client.close())
+            })
+        })
     });
 });
 
