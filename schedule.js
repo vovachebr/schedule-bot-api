@@ -24,7 +24,7 @@ function schedule(){
         lessonsCollection.find({date:today, isSent: false}).toArray(function(errLesson, lessons = []){
 
             lessons.forEach(lesson => {
-                hooksCollection.findOne({group: lesson.group}, function(errHook, hook){
+                hooksCollection.findOne({group: lesson.group}, function(errHook, hook = {}){
                     sendLessonNotification(lesson, hook)
                     
                 })
