@@ -24,8 +24,8 @@ function schedule(){
         lessonsCollection.find({date:today, isSent: false}).toArray(function(errLesson, lessons = []){
 
             lessons.forEach(lesson => {
-                hooksCollection.findOne({group: lesson.group}, function(errHook, hook = {}){
-                    sendLessonNotification(lesson, hook)
+                hooksCollection.findOne({group: lesson.group}, function(errHook, hook){
+                    sendLessonNotification(lesson, hook || {})
                     
                 })
             })
@@ -71,7 +71,7 @@ function sendLessonNotification(lesson, hook){
         }
     }
 
-    configuration[hook.messegerType](lesson, hook); // Вызов конфигурации
+    configuration[hook.messegerType] && configuration[hook.messegerType](lesson, hook); // Вызов конфигурации
 }
 
 function getLessonText(lesson){
