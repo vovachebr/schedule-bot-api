@@ -4,7 +4,7 @@ const router = require('express').Router();
 const MongoClient = require("mongodb").MongoClient;
 
 router.get("/", function(request, response){
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
     mongoClient.connect(function(err, client){
         const db = client.db("shedule");
         const hooksCollection = db.collection("hooks");
@@ -29,7 +29,7 @@ router.post("/add", function(request, response){
         response.json({ success: false, error: "Отсутствуют данные"});
         return;
     }
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
     mongoClient.connect(function(err, client){
         const db = client.db("shedule");
@@ -72,7 +72,7 @@ router.post("/remove", function(request, response){
         return;
     }
 
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
     mongoClient.connect(function(err, client){
         const db = client.db("shedule");
@@ -100,7 +100,7 @@ router.post("/update", function(request, response){
         return;
     }
 
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
     mongoClient.connect(function(err, client){
         const db = client.db("shedule");

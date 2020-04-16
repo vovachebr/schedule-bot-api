@@ -10,7 +10,7 @@ const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, {
 
 bot.onText(/\/create_hook/, (message) => {
     console.log(message);
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
     mongoClient.connect(function(err, client){
         const db = client.db("shedule");
@@ -46,7 +46,7 @@ bot.onText(/\/create_hook/, (message) => {
 });
 
 bot.onText(/\/remove_hook/, (message) => {
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
     mongoClient.connect(function(err, client){
         const db = client.db("shedule");
@@ -73,7 +73,7 @@ bot.onText(/\/remove_hook/, (message) => {
 });
 
 bot.onText(/\/when_lesson/, (message) => {
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
 
     mongoClient.connect(function(err, client){
         const db = client.db("shedule");
