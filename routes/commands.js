@@ -7,7 +7,7 @@ const MongoClient = require("mongodb").MongoClient;
 router.post("/addme", function(request, response){
     const channelName = request.body.text.toLowerCase();
     const userId = request.body.user_id;
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
     
     mongoClient.connect(function(err, client){
         const db = client.db("shedule");
@@ -53,7 +53,7 @@ router.post("/addme", function(request, response){
 router.post("/moveme", function(request, response){
     const channelName = request.body.text.toLowerCase();
     const userId = request.body.user_id;
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
     
     mongoClient.connect(function(err, client){
         const db = client.db("shedule");
