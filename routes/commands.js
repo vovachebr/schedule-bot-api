@@ -10,7 +10,7 @@ router.post("/addme", function(request, response){
     const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
     
     mongoClient.connect(function(err, client){
-        const db = client.db("shedule");
+        const db = client.db("heroku_4x7x2rvn");
         const hooksCollection = db.collection("hooks");
 
         if(err){
@@ -56,7 +56,7 @@ router.post("/moveme", function(request, response){
     const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
     
     mongoClient.connect(function(err, client){
-        const db = client.db("shedule");
+        const db = client.db("heroku_4x7x2rvn");
         const hooksCollection = db.collection("hooks");
 
         if(err){
