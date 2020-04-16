@@ -19,7 +19,7 @@ router.post("/sendInstantMessage", function(request, response) {
         telegram: schedule.sendTelegramMessage
     };
 
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
     mongoClient.connect(function(err, client){
         const db = client.db("shedule");

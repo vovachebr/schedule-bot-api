@@ -8,7 +8,7 @@ const { MONGODB_URI } = process.env;
 schedule();
 
 function schedule(){
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
     mongoClient.connect(function(err, client){
       

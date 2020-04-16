@@ -33,7 +33,7 @@ router.post("/add", function(request, response){
         return;
     }
     
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
     mongoClient.connect(function(err, client){
         const db = client.db("shedule");
@@ -69,7 +69,7 @@ router.post("/remove", function(request, response){
         return;
     }
 
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
     mongoClient.connect(function(err, client){
         const db = client.db("shedule");
@@ -97,7 +97,7 @@ router.post("/update", function(request, response){
         return;
     }
 
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
     mongoClient.connect(function(err, client){
         const db = client.db("shedule");
@@ -126,7 +126,7 @@ router.get("/getLastLecture:lecture?", function(request, response){
         return;
     }
 
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
     mongoClient.connect(function(err, client){
         const db = client.db("shedule");
@@ -149,7 +149,7 @@ router.get("/getLastLecture:lecture?", function(request, response){
 router.get("/:isSent?", function(request, response){
     const isSent = request.query.isSent === "true";
 
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
     mongoClient.connect(function(err, client){
         const db = client.db("shedule");
@@ -172,7 +172,7 @@ router.get("/:isSent?", function(request, response){
 router.post("/sendNotification", function(request, response){
     const { id } = request.body;
 
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true });
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
     mongoClient.connect(function(err, client){
         const db = client.db("shedule");
