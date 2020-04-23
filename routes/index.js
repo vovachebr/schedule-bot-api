@@ -12,6 +12,11 @@ router.use('/hooks', hooks);
 router.use('/lessons', lessons);
 router.use('/commands', commands);
 
+router.get("/start", function(request, response) {
+    schedule.scheduler();
+    response.send("Запрос отправлен в обработку");
+})
+
 router.post("/sendInstantMessage", function(request, response) {
     const {channel, text} = request.body;
     const configer = {

@@ -139,4 +139,9 @@ function sendTelegramMessage(hook, message){
     bot.sendMessage(channelId, message);
 }
 
-module.exports = {sendSlackMessage, sendTelegramMessage, sendLessonNotification};
+module.exports = {
+    scheduler: schedule, 
+    sendSlackMessage, 
+    sendTelegramMessage, 
+    sendLessonNotification
+};
