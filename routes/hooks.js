@@ -6,7 +6,7 @@ const MongoClient = require("mongodb").MongoClient;
 router.get("/", function(request, response){
     const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
     mongoClient.connect(function(err, client){
-        const db = client.db("heroku_4x7x2rvn");
+        const db = client.db("schedule");
         const hooksCollection = db.collection("hooks");
 
         if(err){
@@ -32,7 +32,7 @@ router.post("/add", function(request, response){
     const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
     mongoClient.connect(function(err, client){
-        const db = client.db("heroku_4x7x2rvn");
+        const db = client.db("schedule");
         const hooksCollection = db.collection("hooks");
 
         if(err){
@@ -75,7 +75,7 @@ router.post("/remove", function(request, response){
     const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
     mongoClient.connect(function(err, client){
-        const db = client.db("heroku_4x7x2rvn");
+        const db = client.db("schedule");
         const hooksCollection = db.collection("hooks");
 
         if(err){
@@ -103,7 +103,7 @@ router.post("/update", function(request, response){
     const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
     mongoClient.connect(function(err, client){
-        const db = client.db("heroku_4x7x2rvn");
+        const db = client.db("schedule");
         const hooksCollection = db.collection("hooks");
 
         if(err){

@@ -14,7 +14,7 @@ function schedule(){
       
         if(err) return console.log("err:",err);
 
-        const db = client.db("heroku_4x7x2rvn");
+        const db = client.db("schedule");
         const lessonsCollection = db.collection("lessons");
         const hooksCollection = db.collection("hooks");
      
