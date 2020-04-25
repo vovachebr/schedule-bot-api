@@ -1,7 +1,7 @@
 const { MONGODB_URI } = process.env;
 
 const schedule = require('../schedule');
-const guid = require('guid');
+var uuid = require('node-uuid');
 const router = require('express').Router();
 const MongoClient = require("mongodb").MongoClient;
 
@@ -52,7 +52,7 @@ router.post("/add", function(request, response){
                 return
             }
 
-            lessonsCollection.insertOne({ group, date, time, teacher, lecture, additional, imageUrl, id: guid.create().value, isSent: false}, function(){
+            lessonsCollection.insertOne({ group, date, time, teacher, lecture, additional, imageUrl, id: uuid.v1(), isSent: false}, function(){
                 lessonsCollection.find().toArray(function(errLessons, lessons){
                     client.close();
                     response.json({ success: true, lessons: lessons});
