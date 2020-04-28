@@ -44,4 +44,15 @@ router.post("/sendInstantMessage", function(request, response) {
     });
 });
 
+router.get("/getDatabaseStat", async function(request, response) {
+    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    const client = await mongoClient.connect();
+ 
+    const stats = await client.db('schedule').stats();
+    const busySize = stats.indexSize + stats.dataSize; //bytes
+    const allSize = 512 * 1024 * 1024; //bytes;
+
+    response.json({ success: true, busySize, allSize});
+});
+
 module.exports = {router};
