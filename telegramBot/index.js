@@ -96,6 +96,7 @@ bot.onText(/\/when_lesson/, (message) => {
             lessonsCollection.find({group: hooks[0].group}).toArray((errLesson, lessons = []) => {
                 if(lessons.length === 0){
                     bot.sendMessage(message.chat.id, "Занятие не найдено");
+                    return;
                 }
 
                 let nearestLesson = lessons[0];
