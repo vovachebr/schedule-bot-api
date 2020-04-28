@@ -99,9 +99,11 @@ bot.onText(/\/when_lesson/, (message) => {
                     return;
                 }
 
-                let nearestLesson = lessons[0];
-                for (const lesson of lessons) {
-                    if(new Date(lesson.date) < new Date(nearestLesson.date))
+                const notPassedLessons = lessons.filter(l => new Date(l.date) > new Date());
+                let nearestLesson = notPassedLessons[notPassedLessons.length - 1];
+                for (const lesson of notPassedLessons) {
+                    const lessonDate = new Date(lesson.date);
+                    if(lessonDate < new Date(nearestLesson.date) && lessonDate > new Date())
                         nearestLesson = lesson;
                 }
                 bot.sendMessage(message.chat.id, 
