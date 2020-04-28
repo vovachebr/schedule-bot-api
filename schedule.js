@@ -5,8 +5,6 @@ const bot = require('./telegramBot');
 
 const { MONGODB_URI } = process.env;
 
-schedule();
-
 function schedule(){
     const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
