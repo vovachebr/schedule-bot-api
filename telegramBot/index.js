@@ -1,12 +1,21 @@
 const TelegramBot = require('node-telegram-bot-api');
 const MongoClient = require("mongodb").MongoClient;
 
-const {TELEGRAM_BOT_TOKEN, MONGODB_URI} = process.env;
+const {TELEGRAM_BOT_TOKEN, MONGODB_URI, PORT, URL} = process.env;
+
+/*const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, {
+    webHook: {port: PORT, autoOpen:false}
+});
+bot.setWebHook(`${URL}/bot${TELEGRAM_BOT_TOKEN}`);
+bot.openWebHook();*/
+//DEBUG=node-telegram-bot-api npm run start
+//https://api.telegram.org/bot1151555453:AAG6c-54MbYfgHfevIDJcQXgZ214fEOVbMM/setWebhook 
+
 
 const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, {
-    polling: true
-    //TODO: изменить на webhook
+    polling: {autoStart: false}
 });
+bot.startPolling();
 
 bot.onText(/\/create_hook/, (message) => {
     console.log(message);
@@ -89,7 +98,7 @@ bot.onText(/\/when_lesson/, (message) => {
         hooksCollection.find({$or: [{channelId: message.chat.id},{group: message.chat.title}]}).toArray(function(errHook, hooks = []){
             if(hooks.length == 0){
                 client.close();
-                bot.sendMessage(message.chat.id, "Хук уже отсутствует");
+                bot.sendMessage(message.chat.id, "Хук отсутствует");
                 return;
             }
         
