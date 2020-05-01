@@ -1,123 +1,119 @@
-const { MONGODB_URI } = process.env;
-
 const router = require('express').Router();
-const MongoClient = require("mongodb").MongoClient;
+const { connect } = require('./../util/mongoConnector');
 
-router.get("/", function(request, response){
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-    mongoClient.connect(function(err, client){
+router.get("/", (request, response) => {
+    connect(async (err, client) => {
         const db = client.db("schedule");
         const hooksCollection = db.collection("hooks");
 
         if(err){
             response.json({ success: false, error: err});
-            client.close();
             return;
         } 
         
-        hooksCollection.find().toArray(function(errHook, hooks){
+        sendResultCallback = (errHook, hooks) => {
             response.json({ success: true, hooks: hooks});
-            client.close();
-        });
+        }
 
+        foundHooks = await hooksCollection.find();
+        foundHooks.toArray(sendResultCallback);
     });
 });
 
-router.post("/add", function(request, response){
+router.post("/add", (request, response) => {
     let { value, group, channel, channelId } = request.body;
     if(!value || !group || !channel){
         response.json({ success: false, error: "Отсутствуют данные"});
         return;
     }
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
-    mongoClient.connect(function(err, client){
+    connect(async (err, client) => {
         const db = client.db("schedule");
         const hooksCollection = db.collection("hooks");
 
         if(err){
-            client.close();
             response.json({ success: false, error: err});
             return;
         } 
 
-        hooksCollection.find({$or: [{value},{group},{channel}]}).toArray(function(errHook, hooks = []){
+        foundHooksCallback = (errHook, hooks = []) => {
             if(hooks.length > 0){
-                client.close();
+
                 response.json({ success: false, error: "Хук с такими значениями уже существует"});
                 return;
             }
         
-            hooksCollection.insertOne({ value, group, channel, channelId, messegerType: "slack" },function(err, result){
+            hooksCollection.insertOne({ value, group, channel, channelId, messegerType: "slack" }, insertHookCallback);
+        }
 
-                if(err){
-                    client.close();
-                    response.json({ success: false, error: err});
-                    return;
-                } 
+        const insertHookCallback = async (err, result) => {
+            if(err){
 
-                hooksCollection.find({}).toArray(function(errHook, hooks){
-                    client.close();
-                    response.json({ success: true, hooks: hooks});
-                });
-            });
-        });
+                response.json({ success: false, error: err});
+                return;
+            } 
+
+            foundHooks = await hooksCollection.find({}).toArray(sendResultCallback);
+        }
+
+        const sendResultCallback = (errHook, hooks) => {
+            response.json({ success: true, hooks: hooks});
+        }
+
+        foundHooks = await hooksCollection.find({$or: [{value},{group},{channel}]});
+        foundHooks.toArray(foundHooksCallback);
     });
 });
 
-router.post("/remove", function(request, response){
-    let { value } = request.body;
-    if(!value){
+router.post("/remove", (request, response) => {
+    let { value, channelId } = request.body;
+    if(!(value || channelId)){
         response.json({ success: false, error: "value отсутствует"});
         return;
     }
 
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-
-    mongoClient.connect(function(err, client){
+    connect(async (err, client) => {
         const db = client.db("schedule");
         const hooksCollection = db.collection("hooks");
 
         if(err){
             response.json({ success: false, error: err});
-            client.close();
             return;
         } 
 
-        hooksCollection.remove({value}).then(result => {
-            hooksCollection.find({}).toArray(function(errHook, hooks){
-                response.json({ success: true, hooks: hooks});
-                client.close();
-            });
-        });
+        const sendResultCallback = (errHook, hooks) =>{
+            response.json({ success: true, hooks: hooks});
+        }
+
+        const deleteHookResponse = await hooksCollection.findOneAndDelete({value, channelId});
+        const foundHooks = await hooksCollection.find({});
+        foundHooks.toArray(sendResultCallback);
     });
 });
 
-router.post("/update", function(request, response){
+router.post("/update", (request, response) => {
     let { oldValue, value, channel, group, channelId } = request.body;
-    if(!oldValue){
+    if(!(oldValue || channelId)){
         response.json({ success: false, error: "value отсутствует"});
         return;
     }
 
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-
-    mongoClient.connect(function(err, client){
+    connect(async (err, client) => {
         const db = client.db("schedule");
         const hooksCollection = db.collection("hooks");
 
         if(err){
             response.json({ success: false, error: err});
-            client.close();
             return;
         } 
 
-        hooksCollection.findOneAndUpdate({value: oldValue}, {$set: {value, channel, group, channelId}}).then(result => {
-            hooksCollection.find({}).toArray(function(errHook, hooks){
-                response.json({ success: true, hooks: hooks});
-                client.close();
-            });
-        });
+        const sendResultCallback = (errHook, hooks) =>{
+            response.json({ success: true, hooks: hooks});
+        }
+
+        await hooksCollection.findOneAndUpdate({value: oldValue, channelId}, {$set: {value, channel, group, channelId}});
+        const foundHooks = await hooksCollection.find({});
+        foundHooks.toArray(sendResultCallback);
     });
 });
 
