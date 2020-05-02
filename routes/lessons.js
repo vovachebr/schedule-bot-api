@@ -1,124 +1,78 @@
-const { MONGODB_URI } = process.env;
-
 const schedule = require('../schedule');
 var uuid = require('node-uuid');
 const router = require('express').Router();
-const MongoClient = require("mongodb").MongoClient;
+const { connect } = require('./../util/mongoConnector');
 
-router.post("/add", function(request, response){
+router.post("/add", (request, response) => {
     let { group, date, time, teacher, lecture, additional, imageUrl } = request.body;
-    
-    if(!group){
-        response.json({ success: false, error: "group отсутствует"});
-        return;
-    }
 
-    if(!date){
-        response.json({ success: false, error: "date отсутствует"});
-        return;
-    }
+    let error = "";
+    for (const prop in request.body) {
+        if (request.body.hasOwnProperty(prop)) {
+            const element = request.body[prop];
+            if(prop === "imageUrl")
+                continue;
 
-    if(!time){
-        response.json({ success: false, error: "time отсутствует"});
-        return;
+            if(!element)
+                error += `${prop} отсутствует;\n`;
+        }
     }
-
-    if(!teacher){
-        response.json({ success: false, error: "teacher отсутствует"});
-        return;
-    }
-
-    if(!lecture){
-        response.json({ success: false, error: "lecture отсутствует"});
+    if(error){
+        response.json({ success: false, error});
         return;
     }
     
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-
-    mongoClient.connect(function(err, client){
+    connect(async (client) => {
         const db = client.db("schedule");
         const lessonsCollection = db.collection("lessons");
 
-        if(err){
-            response.json({ success: false, error: err});
-            client.close();
-            return;
-        } 
+        let lessons = await lessonsCollection.find({group, date, time, teacher, lecture}).toArray();
 
-        lessonsCollection.find( {group, date, time, teacher, lecture}).toArray(function(errFoundLessons, foundLessons){
-            if(foundLessons.length){
-                client.close();
-                response.json({ success: false, error: "Такое занятие уже существует"});
-                return
-            }
+        if(lessons.length){
+            response.json({ success: false, error: "Такое занятие уже существует"});
+            return
+        }
 
-            lessonsCollection.insertOne({ group, date, time, teacher, lecture, additional, imageUrl, id: uuid.v1(), isSent: false}, function(){
-                lessonsCollection.find().toArray(function(errLessons, lessons){
-                    client.close();
-                    response.json({ success: true, lessons: lessons});
-                });
-            })
-        });
+        await lessonsCollection.insertOne({ group, date, time, teacher, lecture, additional, imageUrl, id: uuid.v1(), isSent: false})
+        response.json({ success: true });
     });
 });
 
-router.post("/remove", function(request, response){
+router.post("/remove", (request, response) => {
     let { id } = request.body;
     if(!id){
         response.json({ success: false, error: "id отсутствует"});
         return;
     }
 
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-
-    mongoClient.connect(function(err, client){
+    connect(async (client) => {
         const db = client.db("schedule");
         const lessonsCollection = db.collection("lessons");
 
-        if(err){
-            client.close();
-            response.json({ success: false, error: err});
-            return;
-        } 
-
-        lessonsCollection.remove({id}).then(result => {
-            lessonsCollection.find({}).toArray(function(errLessons, lessons){
-                client.close();
-                response.json({ success: true, lessons: lessons || []});
-            });
-        });
+        await lessonsCollection.remove({id});
+        const lessons = await lessonsCollection.find({}).toArray();
+        response.json({ success: true, lessons: lessons || []});
     });
 });
 
-router.post("/update", function(request, response){
+router.post("/update", (request, response) => {
     let { id, group, date, time, teacher, lecture, isSent } = request.body;
     if(!id){
         response.json({ success: false, error: "id отсутствует"});
         return;
     }
 
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-
-    mongoClient.connect(function(err, client){
+    connect(async (client) => {
         const db = client.db("schedule");
         const lessonsCollection = db.collection("lessons");
 
-        if(err){
-            response.json({ success: false, error: err});
-            client.close();
-            return;
-        } 
-
-        lessonsCollection.findOneAndUpdate({id}, {$set: {group, date, time, teacher, lecture, isSent}}).then(result => {
-            lessonsCollection.find({}).toArray(function(errLessons, lessons){
-                response.json({ success: true, lessons});
-                client.close();
-            });
-        });
+        await lessonsCollection.findOneAndUpdate({id}, {$set: {group, date, time, teacher, lecture, isSent}});
+        const lessons = await lessonsCollection.find({}).toArray();
+        response.json({ success: true, lessons: lessons || []});
     });
 });
 
-router.get("/getLastLecture:lecture?", function(request, response){
+router.get("/getLastLecture:lecture?", (request, response) => {
     const { lecture } = request.query;
 
     if(!lecture){
@@ -126,67 +80,41 @@ router.get("/getLastLecture:lecture?", function(request, response){
         return;
     }
 
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-
-    mongoClient.connect(function(err, client){
+    connect(async (client) => {
         const db = client.db("schedule");
         const lessonsCollection = db.collection("lessons");
 
-        if(err){
-            response.json({ success: false, error: err});
-            client.close();
-            return;
-        } 
-
-        lessonsCollection.find({lecture}).toArray(function(errLessons, lessons = []){
-            response.json({ success: true, lesson: lessons[0]});
-            client.close();
-        });
-
+        const lesson = await lessonsCollection.findOne({lecture});
+        response.json({ success: true, lesson});
     });
 });
 
-router.get("/:isSent?", function(request, response){
+router.get("/:isSent?", (request, response) => {
     const isSent = request.query.isSent === "true";
 
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-
-    mongoClient.connect(function(err, client){
+    connect(async (client) => {
         const db = client.db("schedule");
         const lessonsCollection = db.collection("lessons");
 
-        if(err){
-            response.json({ success: false, error: err});
-            client.close();
-            return;
-        } 
-
-        lessonsCollection.find({isSent}).toArray(function(errLessons, lessons){
-            response.json({ success: true, lessons: lessons || []});
-            client.close();
-        });
-
+        const lessons = await lessonsCollection.find({isSent}).toArray();
+        response.json({ success: true, lessons: lessons || []});
     });
 });
 
-router.post("/sendNotification", function(request, response){
+router.post("/sendNotification", (request, response) => {
     const { id } = request.body;
 
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-
-    mongoClient.connect(function(err, client){
+    connect(async (client) => {
         const db = client.db("schedule");
         const lessonsCollection = db.collection("lessons");
         const hooksCollection = db.collection("hooks");
 
-        lessonsCollection.findOne({id}).then(lesson => {
-            hooksCollection.findOne({group: lesson.group}).then(hook => {
-                schedule.sendLessonNotification(lesson, hook)
-                
-                response.json({ success: true, data:"Уведомление отправлено"});
-                lessonsCollection.updateMany({id}, {$set: {isSent: true}}).then(() => client.close())
-            })
-        })
+        const lesson = await lessonsCollection.findOne({id});
+        const hook = await hooksCollection.findOne({group: lesson.group});
+
+        schedule.sendLessonNotification(lesson, hook)
+        response.json({ success: true, data:"Уведомление отправлено"});
+        lessonsCollection.updateMany({id}, {$set: {isSent: true}});
     });
 });
 
