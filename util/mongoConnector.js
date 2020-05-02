@@ -10,7 +10,12 @@ const connect = (callback) => {
     const mongoClient = new MongoClient(MONGODB_URI, options);
 
     mongoClient.connect(async (err, client) => {
-    await callback(err, client);
+
+    if(err){
+        console.log(err); //TODO: отправлять ошибку в лог
+    }
+
+    await callback(client);
     client.close();
 })}
 

@@ -2,21 +2,12 @@ const router = require('express').Router();
 const { connect } = require('./../util/mongoConnector');
 
 router.get("/", (request, response) => {
-    connect(async (err, client) => {
+    connect(async (client) => {
         const db = client.db("schedule");
         const hooksCollection = db.collection("hooks");
-
-        if(err){
-            response.json({ success: false, error: err});
-            return;
-        } 
         
-        sendResultCallback = (errHook, hooks) => {
-            response.json({ success: true, hooks: hooks});
-        }
-
-        foundHooks = await hooksCollection.find();
-        foundHooks.toArray(sendResultCallback);
+        const hooks = await hooksCollection.find({}).toArray();
+        response.json({ success: true, hooks: hooks});
     });
 });
 
@@ -27,93 +18,55 @@ router.post("/add", (request, response) => {
         return;
     }
 
-    connect(async (err, client) => {
+    connect(async (client) => {
         const db = client.db("schedule");
         const hooksCollection = db.collection("hooks");
 
-        if(err){
-            response.json({ success: false, error: err});
+        foundHooks = await hooksCollection.find({$or: [{value},{group},{channel}]}).toArray() || [];
+        if(foundHooks.length > 0){
+            response.json({ success: false, error: "Хук с такими значениями уже существует"});
             return;
-        } 
-
-        foundHooksCallback = (errHook, hooks = []) => {
-            if(hooks.length > 0){
-
-                response.json({ success: false, error: "Хук с такими значениями уже существует"});
-                return;
-            }
-        
-            hooksCollection.insertOne({ value, group, channel, channelId, messegerType: "slack" }, insertHookCallback);
         }
-
-        const insertHookCallback = async (err, result) => {
-            if(err){
-
-                response.json({ success: false, error: err});
-                return;
-            } 
-
-            foundHooks = await hooksCollection.find({}).toArray(sendResultCallback);
-        }
-
-        const sendResultCallback = (errHook, hooks) => {
-            response.json({ success: true, hooks: hooks});
-        }
-
-        foundHooks = await hooksCollection.find({$or: [{value},{group},{channel}]});
-        foundHooks.toArray(foundHooksCallback);
+    
+        await hooksCollection.insertOne({ value, group, channel, channelId, messegerType: "slack" });
+        foundHooks = await hooksCollection.find({}).toArray();
+        response.json({ success: true, hooks: foundHooks});
     });
 });
 
 router.post("/remove", (request, response) => {
     let { value, channelId } = request.body;
-    if(!(value || channelId)){
-        response.json({ success: false, error: "value отсутствует"});
+    if(!channelId){
+        response.json({ success: false, error: "channelId отсутствуют"});
         return;
     }
 
-    connect(async (err, client) => {
+    channelId = isNaN(+channelId) ? channelId : +channelId;
+
+    connect(async (client) => {
         const db = client.db("schedule");
         const hooksCollection = db.collection("hooks");
 
-        if(err){
-            response.json({ success: false, error: err});
-            return;
-        } 
-
-        const sendResultCallback = (errHook, hooks) =>{
-            response.json({ success: true, hooks: hooks});
-        }
-
-        const deleteHookResponse = await hooksCollection.findOneAndDelete({value, channelId});
-        const foundHooks = await hooksCollection.find({});
-        foundHooks.toArray(sendResultCallback);
+        await hooksCollection.findOneAndDelete({value, channelId});
+        const foundHooks = await hooksCollection.find({}).toArray();
+        response.json({ success: true, hooks: foundHooks});
     });
 });
 
 router.post("/update", (request, response) => {
-    let { oldValue, value, channel, group, channelId } = request.body;
-    if(!(oldValue || channelId)){
-        response.json({ success: false, error: "value отсутствует"});
+    let { oldValue, oldChannel, value, channel, group, channelId } = request.body;
+    if(!(value || channelId)){
+        response.json({ success: false, error: "value или channelId отсутствует"});
         return;
     }
 
-    connect(async (err, client) => {
+    connect(async (client) => {
         const db = client.db("schedule");
         const hooksCollection = db.collection("hooks");
 
-        if(err){
-            response.json({ success: false, error: err});
-            return;
-        } 
-
-        const sendResultCallback = (errHook, hooks) =>{
-            response.json({ success: true, hooks: hooks});
-        }
-
-        await hooksCollection.findOneAndUpdate({value: oldValue, channelId}, {$set: {value, channel, group, channelId}});
-        const foundHooks = await hooksCollection.find({});
-        foundHooks.toArray(sendResultCallback);
+        await hooksCollection.findOneAndUpdate({value: oldValue,channelId: oldChannel}, {$set: {value, channel, group, channelId}});
+        const foundHooks = await hooksCollection.find({}).toArray();
+        response.json({ success: true, hooks: foundHooks});
     });
 });
 
