@@ -1,65 +1,70 @@
-const { MONGODB_URI } = process.env;
 
 const router = require('express').Router();
 var uuid = require('node-uuid');
-const MongoClient = require("mongodb").MongoClient;
 
-router.get("/:id?", function(request, response){
+const schedule = require('../schedule');
+const { connect } = require('./../util/mongoConnector');
+
+router.get("/start", (require, response) => {
+    const today = new Date().toISOString().slice(0,10); // сегодня в формате YYYY-MM-DD
+
+    const configer = {
+        slack: schedule.sendSlackMessage,
+        telegram: schedule.sendTelegramMessage
+    };
+
+    connect(async (client) => {
+        const db = client.db("schedule");
+        const templatesCollection = db.collection("templates");
+        const hooksCollection = db.collection("hooks");
+
+        const todayTemplates = await templatesCollection.find({"schedule.date": today}).toArray() || [];
+
+        for (let i = 0; i < todayTemplates.length; i++) {
+            const template = todayTemplates[i];
+            const hook = await hooksCollection.findOne({channel: template.schedule.channel});
+            const sender = configer[hook.messegerType];
+            sender(hook, template.text);
+            await templatesCollection.findOneAndUpdate({id: template.id}, {$unset: {schedule:""}})
+        }
+        response.json({ success: true});
+    });
+});
+
+router.get("/:id?", (request, response) => {
     let id = request.query.id; 
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-    mongoClient.connect(function(err, client){
+    connect(async (client) => {
         const db = client.db("schedule");
         const templatesCollection = db.collection("templates");
 
-        if(err){
-            response.json({ success: false, error: err});
-            client.close();
-            return;
-        } 
-
         if(id){
-            templatesCollection.findOne({id}).then(function(template){
-                response.json({ success: true, template});
-                client.close();
-            });
+            const template = await templatesCollection.findOne({id})
+            response.json({ success: true, template});
         }else{
-            templatesCollection.find().toArray(function(errTemplate, templates){
-                response.json({ success: true, templates: templates.map(t => ({title:t.title, id: t.id}))});
-                client.close();
-            });
+            const templates = await templatesCollection.find({}).toArray();
+            response.json({ success: true, templates: templates.map(t => ({title:t.title, id: t.id}))});
         }
     });
 });
 
-router.post("/remove", function(request, response){
+router.post("/remove", (request, response) => {
     let { id } = request.body;
     if(!id){
         response.json({ success: false, error: "id отсутствует"});
         return;
     }
 
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-
-    mongoClient.connect(function(err, client){
+    connect(async (err, client) => {
         const db = client.db("schedule");
         const templatesCollection = db.collection("templates");
 
-        if(err){
-            client.close();
-            response.json({ success: false, error: err});
-            return;
-        } 
-
-        templatesCollection.remove({id}).then(result => {
-            templatesCollection.find({}).toArray(function(errTemplates, templates = []){
-                client.close();
-                response.json({ success: true, templates: templates.map(t => ({title:t.title, id: t.id}))});
-            });
-        });
+        await templatesCollection.remove({id});
+        const templates = await templatesCollection.find({}).toArray();
+        response.json({ success: true, templates: templates.map(t => ({title:t.title, id: t.id}))});
     });
 });
 
-router.post("/update", function(request, response){
+router.post("/update", (request, response) => {
     let { id, title, value, schedule } = request.body;
 
     if(!title){
@@ -67,46 +72,26 @@ router.post("/update", function(request, response){
         return;
     }
     
-    const mongoClient = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-
-    mongoClient.connect(function(err, client){
+    connect(async (client) => {
         const db = client.db("schedule");
         const templatesCollection = db.collection("templates");
 
-        if(err){
-            response.json({ success: false, error: err});
-            client.close();
-            return;
-        } 
+        const foundtemplate = await templatesCollection.findOne({title});
+        if(foundtemplate){
+            response.json({ success: false, error: "Такой шаблон уже существует"});
+            return
+        }
 
+        if(id){
+            await templatesCollection.findOneAndUpdate({id}, {$set: {title, value, schedule}});
+        }
+        else{
+            await templatesCollection.insertOne({ title, value, schedule, id: uuid.v1()});
+        }
 
-        templatesCollection.findOne({title}).then(function(foundtemplate){
-            if(foundtemplate){
-                client.close();
-                response.json({ success: false, error: "Такой шаблон уже существует"});
-                return
-            }
-
-            if(id){
-                templatesCollection.findOneAndUpdate({id}, {$set: {title, value, schedule}}).then(result => {
-                    templatesCollection.find({}).toArray(function(errTemplates, templates){
-                        response.json({ success: true, templates: templates.map(t => ({title:t.title, id: t.id}))});
-                        client.close();
-                    });
-                });
-            }
-            else{
-                templatesCollection.insertOne({ title, value, schedule, id: uuid.v1()}, function(){
-                    templatesCollection.find({}).toArray(function(errTemplates, templates){
-                        response.json({ success: true, templates: templates.map(t => ({title:t.title, id: t.id}))});
-                        client.close();
-                    });
-                })
-            }
-        });
+        const templates = await templatesCollection.find({}).toArray();
+        response.json({ success: true, templates: templates.map(t => ({title:t.title, id: t.id}))});
     });
 });
-
-
 
 module.exports = router;
