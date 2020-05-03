@@ -1,5 +1,5 @@
 const schedule = require('../schedule');
-var uuid = require('node-uuid');
+const uuid = require('node-uuid');
 const router = require('express').Router();
 const { connect } = require('./../util/mongoConnector');
 

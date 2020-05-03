@@ -1,6 +1,6 @@
 
 const router = require('express').Router();
-var uuid = require('node-uuid');
+const uuid = require('node-uuid');
 
 const schedule = require('../schedule');
 const { connect } = require('./../util/mongoConnector');
@@ -24,7 +24,7 @@ router.get("/start", (require, response) => {
             const template = todayTemplates[i];
             const hook = await hooksCollection.findOne({channel: template.schedule.channel});
             const sender = configer[hook.messegerType];
-            sender(hook, template.text);
+            sender(hook, template.value);
             await templatesCollection.findOneAndUpdate({id: template.id}, {$unset: {schedule:""}})
         }
         response.json({ success: true});
@@ -54,7 +54,7 @@ router.post("/remove", (request, response) => {
         return;
     }
 
-    connect(async (err, client) => {
+    connect(async (client) => {
         const db = client.db("schedule");
         const templatesCollection = db.collection("templates");
 
@@ -71,13 +71,18 @@ router.post("/update", (request, response) => {
         response.json({ success: false, error: "Название шаблона отсутствует"});
         return;
     }
+
+    if(schedule && (!schedule.date || !schedule.channel)){
+        response.json({ success: false, error: "Данные для расписания не заполнены полностью"});
+        return;
+    }
     
     connect(async (client) => {
         const db = client.db("schedule");
         const templatesCollection = db.collection("templates");
 
         const foundtemplate = await templatesCollection.findOne({title});
-        if(foundtemplate){
+        if(foundtemplate && id !== foundtemplate.id){
             response.json({ success: false, error: "Такой шаблон уже существует"});
             return
         }
