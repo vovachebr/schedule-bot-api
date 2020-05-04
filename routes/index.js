@@ -48,4 +48,30 @@ router.get("/getDatabaseStat", async function(request, response) {
     });
 });
 
+router.post("/clearLessons", async function(request, response) {
+    connect(async (client) => {
+        const db = await client.db('schedule');
+        const lessonsCollection = db.collection("lessons");
+        const statsBefore = await db.stats();
+        const busySizeBefore = statsBefore.indexSize + statsBefore.dataSize; //bytes
+
+        const lessonCountBefore = await lessonsCollection.find({}).count();
+        await lessonsCollection.remove({isSent:true});
+        const lessonCountAfter = await lessonsCollection.find({}).count();
+        
+        const statsAfter = await db.stats();
+        const busySizeAfter = statsAfter.indexSize + statsAfter.dataSize; //bytes
+
+        const allSize = 512 * 1024 * 1024; //bytes;
+
+        response.json({
+            success: true,
+            deletedLessons: lessonCountAfter - lessonCountBefore,
+            clearedSize: busySizeAfter - busySizeBefore,
+            busySizeAfter,
+            allSize
+        });
+    });
+});
+
 module.exports = {router};
