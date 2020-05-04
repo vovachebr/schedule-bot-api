@@ -7,11 +7,13 @@ const hooks = require('./hooks');
 const lessons = require('./lessons');
 const commands = require('./commands');
 const templates = require('./templates');
+const images = require('./images');
 
 router.use('/hooks', hooks);
 router.use('/lessons', lessons);
 router.use('/commands', commands);
 router.use('/templates', templates);
+router.use('/images', images);
 
 router.get("/start", function(request, response) {
     schedule.scheduler();
