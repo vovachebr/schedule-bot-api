@@ -45,13 +45,14 @@ function sendLessonNotification(lesson, hook){
                     }
                 }
             ];
-            if(lesson.imageUrl){
+            //TODO: изменить на генерирование изображения
+            /*if(lesson.imageUrl){
                 data.push({
                     "type": "image",
                     "image_url": lesson.imageUrl,
                     "alt_text": lesson.imageUrl
                 })
-            }
+            }*/
             data = {
                 text,
                 blocks: data
@@ -61,11 +62,9 @@ function sendLessonNotification(lesson, hook){
         telegram: (lesson, hook) => {
             let text = getLessonText(lesson);
             text = text.replace("<!channel> \n ", ""); // удаление общей нотификации
-            if(lesson.imageUrl){
-                bot.sendPhoto(hook.channelId, lesson.imageUrl, {caption: text});
-            }else{
-                bot.sendMessage(hook.channelId, text);
-            }
+            //bot.sendPhoto(hook.channelId, lesson.imageUrl, {caption: text});
+            //TODO: заменить на генерирование изображения
+            bot.sendMessage(hook.channelId, text);
         }
     }
 

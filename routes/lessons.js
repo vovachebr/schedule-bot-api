@@ -4,15 +4,13 @@ const router = require('express').Router();
 const { connect } = require('./../util/mongoConnector');
 
 router.post("/add", (request, response) => {
-    let { group, date, time, teacher, lecture, additional, imageUrl } = request.body;
+    let { group, date, time, teacher, lecture, additional } = request.body;
 
     let error = "";
     for (const prop in request.body) {
         if (request.body.hasOwnProperty(prop)) {
             const element = request.body[prop];
-            if(prop === "imageUrl")
-                continue;
-
+            
             if(!element)
                 error += `${prop} отсутствует;\n`;
         }
@@ -33,7 +31,7 @@ router.post("/add", (request, response) => {
             return
         }
 
-        await lessonsCollection.insertOne({ group, date, time, teacher, lecture, additional, imageUrl, id: uuid.v1(), isSent: false})
+        await lessonsCollection.insertOne({ group, date, time, teacher, lecture, additional, id: uuid.v1(), isSent: false})
         response.json({ success: true });
     });
 });
