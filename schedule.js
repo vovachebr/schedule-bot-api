@@ -1,7 +1,7 @@
-require('dotenv').config();
 const request = require('request');
 const MongoClient = require("mongodb").MongoClient;
 const bot = require('./telegramBot');
+const { getEditImage } = require('./util/imageEditor');
 
 const { MONGODB_URI } = process.env;
 
@@ -33,26 +33,25 @@ function schedule(){
 }
 
 function sendLessonNotification(lesson, hook){
+    lesson.date = lesson.date.split('-').reverse().join('.');
     const configuration = {
         slack: (lesson, hook) => {
-            let text = getLessonText(lesson);
+            let text = "<!channel> \n" + getLessonText(lesson);
             data = [
                 {
                     "type": "section",
                     text:{
                         "type": "mrkdwn",
                         text
-                    }
+                    },
+                },{
+                    "type": "image",
+                    "image_url": encodeURI(`${process.env.URL}/api/images/getModifiedImage?user=${lesson.teacher}&time=${lesson.time}&date=${lesson.date}&lessonName=${lesson.lecture}`),
+                    "alt_text": "неполучившееся изображение"
                 }
             ];
-            //TODO: изменить на генерирование изображения
-            /*if(lesson.imageUrl){
-                data.push({
-                    "type": "image",
-                    "image_url": lesson.imageUrl,
-                    "alt_text": lesson.imageUrl
-                })
-            }*/
+
+            
             data = {
                 text,
                 blocks: data
@@ -61,10 +60,10 @@ function sendLessonNotification(lesson, hook){
         },
         telegram: (lesson, hook) => {
             let text = getLessonText(lesson);
-            text = text.replace("<!channel> \n ", ""); // удаление общей нотификации
-            //bot.sendPhoto(hook.channelId, lesson.imageUrl, {caption: text});
-            //TODO: заменить на генерирование изображения
-            bot.sendMessage(hook.channelId, text);
+            const actionCallBack = getEditImage(image => {
+                bot.sendPhoto(hook.channelId, image, {caption: text})
+            });
+            actionCallBack(lesson.teacher, lesson.lecture, lesson.time, lesson.date);
         }
     }
 
@@ -72,7 +71,7 @@ function sendLessonNotification(lesson, hook){
 }
 
 function getLessonText(lesson){
-    let template = "<!channel> \n Добрый день! \n Сегодня, {date}, в {time} по московскому времени состоится лекция «{lecture}». Ее проведет {teacher}. {additional} \n\n Ссылку на трансляцию вы найдете в личном кабинете и в письме, которое сегодня придет вам на почту за два часа до лекции.";
+    let template = "Добрый день! \nСегодня, {date}, в {time} по московскому времени состоится лекция «{lecture}». Ее проведет {teacher}. {additional} \n\nСсылку на трансляцию вы найдете в личном кабинете и в письме, которое сегодня придет вам на почту за два часа до лекции.";
     options = {
         month: 'numeric',
         day: 'numeric'

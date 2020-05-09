@@ -1,21 +1,22 @@
 const router = require('express').Router();
 const multer  = require('multer');
 const { connect } = require('./../util/mongoConnector');
-
+const { getEditImage } = require('./../util/imageEditor');
 
 const upload = multer({ encoding: 'unicode' });
 router.post("/addImage",upload.single('avatar'), async (request, response) => {
     const typeWithName = request.file.originalname.split('.')[0].trim();
-    const [type, name] = typeWithName.split("_");
-    if(!["defaultuser", "преподаватель", "фон", "лого"].includes(type)){
+    const [type, name, position] = typeWithName.split("#");
+    if(!["defaultuser", "преподаватель", "фон", "лого", "mask"].includes(type)){
         response.json({ success: false, error: "Отсутствует правильный префикс, изображение не было добавлено"});
         return;
     }
     const finalImg = {
         image:  Buffer.from(request.file.buffer),
         type,
-        name
-     };
+        name,
+        position
+    };
     connect(async (client) => {
         const db = client.db("schedule");
         const imagesCollection = db.collection("images");
@@ -39,7 +40,7 @@ router.get("/getNamesByType:type?",async (request, response) => {
         const imagesCollection = db.collection("images");
 
         let array = await imagesCollection.find({type}).toArray();
-        array = array.map(t => t.name);
+        array.forEach(a => { delete a.image; delete a._id});
         response.json({ success: true, data: array});
     })
 });
@@ -51,6 +52,7 @@ router.get("/getImageByName:name?",async (request, response) => {
         const imagesCollection = db.collection("images");
 
         let imageElement = await imagesCollection.findOne({name});
+        response.contentType('image/jpeg');
         response.send(imageElement.image.buffer);
     })
 });
@@ -71,7 +73,14 @@ router.get("/removeImageByName:name?",async (request, response) => {
         let array = await imagesCollection.find({type: removeImage.type}).toArray();
         array = array.map(t => t.name);
         response.json({ success: true, data: array});
-    })
+    });
+});
+
+router.get("/getModifiedImage:user?:time?:date?:lessonName?", async function(request, response) {
+    let { user, lessonName, time, date } = request.query;
+    const actionCallBack = getEditImage(image => response.send(image));
+    response.contentType('image/jpeg');
+    actionCallBack(user, lessonName, time, date);
 });
 
 module.exports = router;
