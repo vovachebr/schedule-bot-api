@@ -1,16 +1,11 @@
 const TelegramBot = require('node-telegram-bot-api');
 const { connect } = require('./../util/mongoConnector');
 
-const {TELEGRAM_BOT_TOKEN, PORT, URL} = process.env;
+const {TELEGRAM_BOT_TOKEN} = process.env;
 
 const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, {
-  webHook: {port: PORT, autoOpen:false}
-});
-bot.setWebHook(`${URL}/bot${TELEGRAM_BOT_TOKEN}`);
-
-/*const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, {
   polling: true
-});*/
+});
 
 bot.onText(/\/create_hook/, (message) => {
   connect(async (client) => {
