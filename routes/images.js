@@ -6,7 +6,7 @@ const { getEditImage } = require('./../util/imageEditor');
 const upload = multer({ encoding: 'unicode' });
 router.post("/addImage",upload.single('avatar'), async (request, response) => {
   const typeWithName = request.file.originalname.split('.')[0].trim();
-  const [type, name, position] = typeWithName.split("#");
+  const [type, name, position] = typeWithName.split("_");
   if(!["defaultuser", "преподаватель", "фон", "лого"].includes(type)){
     response.json({ success: false, error: "Отсутствует правильный префикс, изображение не было добавлено"});
     return;
@@ -23,13 +23,13 @@ router.post("/addImage",upload.single('avatar'), async (request, response) => {
 
     const existImage = await imagesCollection.findOne({name});
     if(existImage){
-      imagesCollection.findOneAndUpdate({name}, {$set: {image: finalImg.image, type, name}});
-      response.json({ success: true, info: "Существующее изображние было обновлено", data: name});
+      await imagesCollection.findOneAndUpdate({name}, {$set: {image: finalImg.image, type, name}});
+      response.json({ success: true, info: "Существующее изображние было обновлено", data });
       return;
     }
 
     await imagesCollection.insertOne(finalImg);
-    response.json({ success: true, data: name});
+    response.json({ success: true, info: "Изображние было добавлено" });
   })
 });
 
@@ -39,9 +39,9 @@ router.get("/getNamesByType:type?",async (request, response) => {
     const db = client.db("schedule");
     const imagesCollection = db.collection("images");
 
-    let array = await imagesCollection.find({type}).toArray();
-    array.forEach(a => { delete a.image; delete a._id});
-    response.json({ success: true, data: array});
+    let data = await imagesCollection.find({type}).toArray();
+    data.forEach(a => { delete a.image; delete a._id});
+    response.json({ success: true, data });
   })
 });
 
