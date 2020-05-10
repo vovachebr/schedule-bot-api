@@ -5,46 +5,46 @@ const uuid = require('node-uuid');
 const { connect } = require('./../util/mongoConnector');
 
 router.get("/", (request, response) => {
-    connect(async (client) => {
-        const db = client.db("schedule");
-        const lessonsCollection = db.collection("default_lessons");
+  connect(async (client) => {
+    const db = client.db("schedule");
+    const lessonsCollection = db.collection("default_lessons");
 
-        const lessonsArray = await lessonsCollection.find({}).toArray();
-        const lessons = {};
-        lessonsArray.forEach(element => {
-            delete element._id;
-            if(!lessons[element.course]){
-                lessons[element.course] = [];
-            }
-            lessons[element.course].push(element);
-        });
-        response.json({ success: true, lessons });
+    const lessonsArray = await lessonsCollection.find({}).toArray();
+    const lessons = {};
+    lessonsArray.forEach(element => {
+      delete element._id;
+      if(!lessons[element.course]){
+        lessons[element.course] = [];
+      }
+      lessons[element.course].push(element);
     });
+    response.json({ success: true, lessons });
+  });
 });
 
 router.post("/remove", (request, response) => {
-    let { id } = request.body;
-    if(!id){
-        response.json({ success: false, error: "id отсутствует" });
-        return;
-    }
+  let { id } = request.body;
+  if(!id){
+    response.json({ success: false, error: "id отсутствует" });
+    return;
+  }
 
-    connect(async (client) => {
-        const db = client.db("schedule");
-        const lessonsCollection = db.collection("default_lessons");
+  connect(async (client) => {
+    const db = client.db("schedule");
+    const lessonsCollection = db.collection("default_lessons");
 
-        await lessonsCollection.remove({id});
-        const lessonsArray = await lessonsCollection.find({}).toArray();
-        const lessons = {};
-        lessonsArray.forEach(element => {
-            delete element._id;
-            if(!lessons[element.course]){
-                lessons[element.course] = [];
-            }
-            lessons[element.course].push(element);
-        });
-        response.json({ success: true, lessons });
+    await lessonsCollection.remove({id});
+    const lessonsArray = await lessonsCollection.find({}).toArray();
+    const lessons = {};
+    lessonsArray.forEach(element => {
+      delete element._id;
+      if(!lessons[element.course]){
+        lessons[element.course] = [];
+      }
+      lessons[element.course].push(element);
     });
+    response.json({ success: true, lessons });
+  });
 });
 
 router.post("/create", (request, response) => {
