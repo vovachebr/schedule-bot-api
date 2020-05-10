@@ -7,7 +7,7 @@ const upload = multer({ encoding: 'unicode' });
 router.post("/addImage",upload.single('avatar'), async (request, response) => {
   const typeWithName = request.file.originalname.split('.')[0].trim();
   const [type, name, position] = typeWithName.split("#");
-  if(!["defaultuser", "преподаватель", "фон", "лого", "mask"].includes(type)){
+  if(!["defaultuser", "преподаватель", "фон", "лого"].includes(type)){
     response.json({ success: false, error: "Отсутствует правильный префикс, изображение не было добавлено"});
     return;
   }
