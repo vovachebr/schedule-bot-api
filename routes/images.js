@@ -70,9 +70,9 @@ router.get("/removeImageByName:name?",async (request, response) => {
     }
 
     await imagesCollection.findOneAndDelete({name});
-    let array = await imagesCollection.find({type: removeImage.type}).toArray();
-    array = array.map(t => t.name);
-    response.json({ success: true, data: array});
+    let data = await imagesCollection.find({type: removeImage.type}).toArray();
+    data.forEach(a => { delete a.image; delete a._id});
+    response.json({ success: true, data});
   });
 });
 
