@@ -7,7 +7,6 @@ const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, {
   webHook: {port: PORT, autoOpen:false}
 });
 bot.setWebHook(`${URL}/bot${TELEGRAM_BOT_TOKEN}`);
-bot.openWebHook();
 
 /*const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, {
   polling: true
