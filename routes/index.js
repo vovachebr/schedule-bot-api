@@ -8,12 +8,14 @@ const lessons = require('./lessons');
 const commands = require('./commands');
 const templates = require('./templates');
 const images = require('./images');
+const defaultLessons = require('./defaultLessons');
 
 router.use('/hooks', hooks);
 router.use('/lessons', lessons);
 router.use('/commands', commands);
 router.use('/templates', templates);
 router.use('/images', images);
+router.use('/defaultLessons', defaultLessons);
 
 router.get("/start", function(request, response) {
     schedule.scheduler();

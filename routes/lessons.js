@@ -70,8 +70,8 @@ router.post("/update", (request, response) => {
     });
 });
 
-router.get("/getLastLecture:lecture?", (request, response) => {
-    const { lecture } = request.query;
+router.get("/getLastLecture:lecture?:course?", (request, response) => {
+    const { lecture, course } = request.query;
 
     if(!lecture){
         response.json({ success: false, error: "Отсутствует название лекции"});
@@ -80,10 +80,14 @@ router.get("/getLastLecture:lecture?", (request, response) => {
 
     connect(async (client) => {
         const db = client.db("schedule");
-        const lessonsCollection = db.collection("lessons");
+        const lessonsCollection = db.collection("default_lessons");
 
-        const lesson = await lessonsCollection.findOne({lecture});
-        response.json({ success: true, lesson});
+        const lesson = await lessonsCollection.findOne({lessonName: lecture, course});
+        if(lesson){
+            response.json({ success: true, lesson});
+        }else{
+            response.json({ success: false, error: "Не найдено"});
+        }
     });
 });
 
