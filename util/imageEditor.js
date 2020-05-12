@@ -59,7 +59,7 @@ function getEditImage(callback){
 }
 
 function formatLessonName(name){
-  const maxLineLength = 35;
+  const maxLineLength = 25;
   const separated = name.split(" ");
   let accomulator = 0;
   let newName = "";
