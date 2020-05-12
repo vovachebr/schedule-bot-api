@@ -11,7 +11,6 @@ function schedule(){
     const hooksCollection = db.collection("hooks");
    
     const today = new Date().toISOString().slice(0,10); // сегодня в формате YYYY-MM-DD
-    
     const lessons = await lessonsCollection.find({date:today, isSent: false}).toArray() || [];
     lessons.forEach(async lesson => {
       const hook = await hooksCollection.findOne({group: lesson.group});
@@ -22,6 +21,10 @@ function schedule(){
 }
 
 function sendLessonNotification(lesson, hook){
+  if(!hook.messegerType){
+    return;
+  }
+
   lesson.date = lesson.date.split('-').reverse().join('.');
   const configuration = {
     slack: (lesson, hook) => {
@@ -40,7 +43,6 @@ function sendLessonNotification(lesson, hook){
         }
       ];
 
-      
       data = {
         text,
         blocks: data
