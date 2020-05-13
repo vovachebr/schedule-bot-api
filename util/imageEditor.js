@@ -17,7 +17,7 @@ function getEditImage(callback){
       }
       const logo = await imagesCollection.findOne({type: "лого"});
       const backgroundImagesCount = await imagesCollection.find({type: "фон"}).count();
-      const index = Math.round(Math.random() * backgroundImagesCount);
+      const index = Math.floor(Math.random() * backgroundImagesCount);
       const backgroundImage = await imagesCollection.find({type: "фон"}).limit(-1).skip(index).next();
 
       const editableImage = await Jimp.read(backgroundImage.image.buffer);
