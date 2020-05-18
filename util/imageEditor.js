@@ -5,7 +5,7 @@ const { connect } = require('./mongoConnector');
 function getEditImage(callback){
   return (user, lessonName, time, date) => {
     const timeDate = `${time}, СЕГОДНЯ, ${date}`;
-    lessonName = formatLessonName(lessonName);
+    lessonName = formatName(lessonName);
     const part = 2.5;
     connect(async (client) => {
       const db = await client.db('schedule');
@@ -42,7 +42,7 @@ function getEditImage(callback){
       buffer = text2png(timeDate, params);
       let timeDateTextImage = await Jimp.read(Buffer.from(buffer.buffer));
 
-      const userText = `${user} \n${userAvatar.position || ''}`
+      const userText = `${user} \n${formatName(userAvatar.position) || ''}`
       buffer = text2png(userText, params);
       let userTextImage = await Jimp.read(Buffer.from(buffer.buffer));
 
@@ -58,7 +58,7 @@ function getEditImage(callback){
   }
 }
 
-function formatLessonName(name){
+function formatName(name){
   const maxLineLength = 25;
   const separated = name.split(" ");
   let accomulator = 0;
