@@ -42,7 +42,7 @@ function getEditImage(callback){
       buffer = text2png(timeDate, params);
       let timeDateTextImage = await Jimp.read(Buffer.from(buffer.buffer));
 
-      const userText = `${user} \n${formatName(userAvatar.position) || ''}`
+      const userText = `${user} \n${formatName(userAvatar.position || '')}`
       buffer = text2png(userText, params);
       let userTextImage = await Jimp.read(Buffer.from(buffer.buffer));
 
