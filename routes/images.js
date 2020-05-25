@@ -83,11 +83,9 @@ router.get("/removeImageByName:name?",async (request, response) => {
 
 router.get("/getModifiedImage:user?:time?:date?:lessonName?", async function(request, response) {
   let { user, lessonName, time, date } = request.query;
-  connect(async (client) => {
-    const actionCallBack = getEditImage(image => response.send(image));
-    response.contentType('image/jpeg');
-    actionCallBack(user, lessonName, time, date);
-  });
+  const actionCallBack = getEditImage(image => response.send(image));
+  response.contentType('image/jpeg');
+  actionCallBack(user, lessonName, time, date);
 });
 
 module.exports = router;

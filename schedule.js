@@ -1,9 +1,12 @@
 const request = require('request');
 const bot = require('./telegramBot');
-const sleep = require('sleep');
 const { getEditImage } = require('./util/imageEditor');
 const getLessonText = require('./util/lessonFormatter');
 const { connect } = require('./util/mongoConnector');
+
+const sleep = async () => {
+  return await new Promise(resolve => setTimeout(resolve, 10000))//задержка 10сек
+}
 
 function schedule(){
   connect(async dataBaseClient => {
@@ -13,15 +16,42 @@ function schedule(){
    
     const today = new Date().toISOString().slice(0,10); // сегодня в формате YYYY-MM-DD
     const lessons = await lessonsCollection.find({date:today, isSent: false}).toArray() || [];
-    lessons.forEach(async lesson => {
-      const hook = await hooksCollection.findOne({group: lesson.group});
-      sendLessonNotification(dataBaseClient, lesson, hook || {});
-    })
-    await lessonsCollection.updateMany({date:today}, {$set: {isSent: true}})
-  });
+    
+    const sender = async () => {
+      for(const lesson of lessons){
+        const hook = await hooksCollection.findOne({group: lesson.group});
+        await sleep();
+        sendLessonNotification(lesson, hook || {});
+      }
+    }
+    await sender();
+    await lessonsCollection.updateMany({date:today}, {$set: {isSent: true}});
+
+    client.close();
+  }, false);
 }
 
-function sendLessonNotification(dataBaseClient, lesson, hook){
+function test(){
+  connect(async dataBaseClient => {
+    const db = dataBaseClient.db("schedule");
+    const lessonsCollection = db.collection("lessons");
+    const hooksCollection = db.collection("hooks");
+   
+    const lessons = await lessonsCollection.find({isSent: true}).toArray() || [];
+    const sender = async () => {
+      for(const lesson of lessons){
+        const hook = await hooksCollection.findOne({group: "unknown"});
+        await sleep();
+        sendLessonNotification(lesson, hook || {});
+      }
+    }
+    await sender();
+    client.close();
+
+  }, false);
+}
+
+function sendLessonNotification(lesson, hook){
   if(!hook.messegerType){
     return;
   }
@@ -52,7 +82,7 @@ function sendLessonNotification(dataBaseClient, lesson, hook){
     },
     telegram: (lesson, hook) => {
       let text = getLessonText(lesson);
-      const actionCallBack = getEditImage(dataBaseClient, image => {
+      const actionCallBack = getEditImage(image => {
         bot.sendPhoto(hook.channelId, image, {caption: text})
       });
       actionCallBack(lesson.teacher, lesson.lecture, lesson.time, lesson.date);
@@ -60,22 +90,6 @@ function sendLessonNotification(dataBaseClient, lesson, hook){
   }
 
   configuration[hook.messegerType] && configuration[hook.messegerType](lesson, hook); // Вызов конфигурации
-  sleep(5);
-}
-
-function test(){
-  connect(async dataBaseClient => {
-    const db = dataBaseClient.db("schedule");
-    const lessonsCollection = db.collection("lessons");
-    const hooksCollection = db.collection("hooks");
-   
-    const today = new Date().toISOString().slice(0,10); // сегодня в формате YYYY-MM-DD
-    const lessons = await lessonsCollection.find({date:today}).toArray() || [];
-    lessons.forEach(async lesson => {
-      const hook = await hooksCollection.findOne({group: "unknown"});
-      sendLessonNotification(dataBaseClient, lesson, hook || {});
-    })
-  });
 }
 
 function sendSlackMessage(hook, data){
