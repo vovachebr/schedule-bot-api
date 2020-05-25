@@ -1,5 +1,6 @@
 const request = require('request');
 const bot = require('./telegramBot');
+const sleep = require('sleep');
 const { getEditImage } = require('./util/imageEditor');
 const getLessonText = require('./util/lessonFormatter');
 const { connect } = require('./util/mongoConnector');
@@ -59,6 +60,7 @@ function sendLessonNotification(dataBaseClient, lesson, hook){
   }
 
   configuration[hook.messegerType] && configuration[hook.messegerType](lesson, hook); // Вызов конфигурации
+  sleep(5);
 }
 
 function test(){
