@@ -5,8 +5,8 @@ const getLessonText = require('./util/lessonFormatter');
 const { connect } = require('./util/mongoConnector');
 
 function schedule(){
-  connect(async client => {
-    const db = client.db("schedule");
+  connect(async dataBaseClient => {
+    const db = dataBaseClient.db("schedule");
     const lessonsCollection = db.collection("lessons");
     const hooksCollection = db.collection("hooks");
    
@@ -14,13 +14,13 @@ function schedule(){
     const lessons = await lessonsCollection.find({date:today, isSent: false}).toArray() || [];
     lessons.forEach(async lesson => {
       const hook = await hooksCollection.findOne({group: lesson.group});
-      sendLessonNotification(lesson, hook || {});
+      sendLessonNotification(dataBaseClient, lesson, hook || {});
     })
     await lessonsCollection.updateMany({date:today}, {$set: {isSent: true}})
   });
 }
 
-function sendLessonNotification(lesson, hook){
+function sendLessonNotification(dataBaseClient, lesson, hook){
   if(!hook.messegerType){
     return;
   }
@@ -51,7 +51,7 @@ function sendLessonNotification(lesson, hook){
     },
     telegram: (lesson, hook) => {
       let text = getLessonText(lesson);
-      const actionCallBack = getEditImage(image => {
+      const actionCallBack = getEditImage(dataBaseClient, image => {
         bot.sendPhoto(hook.channelId, image, {caption: text})
       });
       actionCallBack(lesson.teacher, lesson.lecture, lesson.time, lesson.date);
@@ -62,8 +62,8 @@ function sendLessonNotification(lesson, hook){
 }
 
 function test(){
-  connect(async client => {
-    const db = client.db("schedule");
+  connect(async dataBaseClient => {
+    const db = dataBaseClient.db("schedule");
     const lessonsCollection = db.collection("lessons");
     const hooksCollection = db.collection("hooks");
    
@@ -71,7 +71,7 @@ function test(){
     const lessons = await lessonsCollection.find({date:today}).toArray() || [];
     lessons.forEach(async lesson => {
       const hook = await hooksCollection.findOne({group: "unknown"});
-      sendLessonNotification(lesson, hook || {});
+      sendLessonNotification(dataBaseClient, lesson, hook || {});
     })
   });
 }
