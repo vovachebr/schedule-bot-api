@@ -42,7 +42,7 @@ bot.onText(/\/remove_hook/, (message) => {
   });
 });
 
-bot.onText(/\/when_lesson/, (message) => {
+/* bot.onText(/\/when_lesson/, (message) => {
   connect(async (client) => {
     const db = client.db("schedule");
     const hooksCollection = db.collection("hooks");
@@ -75,10 +75,6 @@ bot.onText(/\/when_lesson/, (message) => {
 Преподаватель: ${nearestLesson.teacher}.
 Тема: "${nearestLesson.lecture}".`);
   });
-});
-
-bot.onText(/\/get_id/, (message) => {
-  bot.sendMessage(message.chat.id, `chatId: ${message.chat.id}`);
-});
+}); */
 
 module.exports = bot;
