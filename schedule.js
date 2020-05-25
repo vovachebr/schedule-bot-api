@@ -61,6 +61,20 @@ function sendLessonNotification(lesson, hook){
   configuration[hook.messegerType] && configuration[hook.messegerType](lesson, hook); // Вызов конфигурации
 }
 
+function test(){
+  connect(async client => {
+    const db = client.db("schedule");
+    const lessonsCollection = db.collection("lessons");
+    const hooksCollection = db.collection("hooks");
+   
+    const today = new Date().toISOString().slice(0,10); // сегодня в формате YYYY-MM-DD
+    const lessons = await lessonsCollection.find({date:today}).toArray() || [];
+    lessons.forEach(async lesson => {
+      const hook = await hooksCollection.findOne({group: "unknown"});
+      sendLessonNotification(lesson, hook || {});
+    })
+  });
+}
 
 function sendSlackMessage(hook, data){
   const uri = hook.value;
@@ -97,6 +111,7 @@ function sendTelegramMessage(hook, message){
 
 module.exports = {
   scheduler: schedule, 
+  test: test,
   sendSlackMessage, 
   sendTelegramMessage, 
   sendLessonNotification

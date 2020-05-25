@@ -22,6 +22,11 @@ router.get("/start", function(request, response) {
   response.send("Запрос отправлен в обработку");
 })
 
+router.get("/test", function(request, response) {
+  schedule.test();
+  response.send("Запрос отправлен в обработку");
+})
+
 router.post("/sendInstantMessage", (request, response) => {
   const {channel, text} = request.body;
   const configer = {
