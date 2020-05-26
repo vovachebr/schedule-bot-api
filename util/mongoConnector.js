@@ -6,7 +6,7 @@ const options = {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }
-const connect = (callback, isSelfCloser = true) => {
+const connect = (callback) => {
   const mongoClient = new MongoClient(MONGODB_URI, options);
 
   mongoClient.connect(async (err, client) => {
@@ -16,9 +16,7 @@ const connect = (callback, isSelfCloser = true) => {
   }
 
   await callback(client);
-  if(isSelfCloser){
-    client.close();
-  }
+  client.close();
 })}
 
 module.exports = {

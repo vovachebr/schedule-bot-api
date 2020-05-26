@@ -26,9 +26,7 @@ function schedule(){
     }
     await sender();
     await lessonsCollection.updateMany({date:today}, {$set: {isSent: true}});
-
-    client.close();
-  }, false);
+  });
 }
 
 function test(){
@@ -46,9 +44,7 @@ function test(){
       }
     }
     await sender();
-    client.close();
-
-  }, false);
+  });
 }
 
 function sendLessonNotification(lesson, hook){
