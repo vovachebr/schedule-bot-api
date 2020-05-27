@@ -29,7 +29,7 @@ function getEditImage(callback){
       const logoImage = await Jimp.read(logo.image.buffer);
       const userAvatarImage = await Jimp.read(userAvatar.image.buffer);
       await editableImage.resize(part * 200, part * 100);
-      await logoImage.resize(part * 60, Jimp.AUTO);
+      await logoImage.resize(part * 80, Jimp.AUTO);
       await userAvatarImage.resize(part * 20, part * 20);
       userAvatarImage.circle();
 
