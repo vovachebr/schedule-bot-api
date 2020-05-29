@@ -51,10 +51,11 @@ function getEditImage(callback){
       buffer = text2png(userText, params);
       let userTextImage = await Jimp.read(Buffer.from(buffer.buffer));
 
+      editableImage.color([{apply:'tint', params:[30]}]);
       editableImage.blit(logoImage, part * 6, part * 6);
       editableImage.blit(lessonTextImage, part * 6, part * 25);
       editableImage.blit(timeDateTextImage, part * 6, part * 60);
-      editableImage.blit(userAvatarImage, part * 6, part * 70);
+      editableImage.blit(userAvatarImage, part * 6, part * 72);
       editableImage.blit(userTextImage, part * 30, part * 73);
 
       const newBuffer = await editableImage.getBufferAsync(Jimp.AUTO);
