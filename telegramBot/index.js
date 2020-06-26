@@ -109,7 +109,7 @@ id: ${message.from.id}`);
     
 
     bot.sendMessage(message.chat.id, 
-    `Дата ближайшего занятия: ${nearestLesson.date}.
+    `Дата ближайшего занятия: ${nearestLesson.date.split("-").reverse().join("-")}.
 Время: ${nearestLesson.time}.
 Преподаватель: ${nearestLesson.teacher}.
 Тема: "${nearestLesson.lecture}".

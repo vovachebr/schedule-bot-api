@@ -81,7 +81,7 @@ function sendLessonNotification(lesson, hook){
       const actionCallBack = getEditImage(image => {
         bot.sendPhoto(hook.channelId, image, {caption: text})
       });
-      actionCallBack(lesson.teacher, lesson.lecture, lesson.time, lesson.date);
+      actionCallBack(lesson.teacher, lesson.lecture, lesson.time);
     }
   }
 

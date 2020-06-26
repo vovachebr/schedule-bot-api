@@ -81,11 +81,11 @@ router.get("/removeImageByName:name?",async (request, response) => {
   });
 });
 
-router.get("/getModifiedImage:user?:time?:date?:lessonName?", async function(request, response) {
-  let { user, lessonName, time, date } = request.query;
+router.get("/getModifiedImage:user?:time?:lessonName?", async function(request, response) {
+  let { user, lessonName, time } = request.query;
   const actionCallBack = getEditImage(image => response.send(image));
   response.contentType('image/jpeg');
-  actionCallBack(user, lessonName, time, date);
+  actionCallBack(user, lessonName, time);
 });
 
 module.exports = router;
