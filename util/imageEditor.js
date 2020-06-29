@@ -45,14 +45,18 @@ function getEditImage(callback){
       buffer = text2png(user, params);
       let userName = await Jimp.read(Buffer.from(buffer.buffer));
 
-      buffer = text2png(formatLessonName(userAvatar.position || ''), params);
-      let userPosition = await Jimp.read(Buffer.from(buffer.buffer));
+     
 
       editableImage.blit(lessonTextImage, part * 6, part * 25);
       editableImage.blit(timeTextImage, part * 13, part * 13.5);
       editableImage.blit(userAvatarImage, part * 6, part * 70);
       editableImage.blit(userName, part * 32, part * 71);
-      editableImage.blit(userPosition, part * 32, part * 83);
+
+      if(userAvatar.position){
+        buffer = text2png(formatLessonName(userAvatar.position), params);
+        let userPosition = await Jimp.read(Buffer.from(buffer.buffer));
+        editableImage.blit(userPosition, part * 32, part * 83);
+      }
 
       const newBuffer = await editableImage.getBufferAsync(Jimp.AUTO);
       waiter(newBuffer);
@@ -60,7 +64,7 @@ function getEditImage(callback){
   }
 }
 
-function formatLessonName(name){
+function formatLessonName(name = ''){
   const maxLineLength = 25;
   const separated = name.split(" ");
   let accomulator = 0;
