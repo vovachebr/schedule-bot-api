@@ -94,7 +94,7 @@ id: ${message.from.id}`);
     const result = await hooksCollection.findOneAndUpdate({$or: [{channelId: message.chat.id},{group: message.chat.title}]},
       {$set: {whenLessonLastUsedDate: lastUseDate}});
 
-    const notPassedLessons = lessons.filter(l => (new Date() - new Date(l.date))/(1000*60*60) <= 19);//меньше 19 часов
+    const notPassedLessons = lessons.filter(l => (new Date() - new Date(l.date))/(1000*60*60) <= 24);//меньше суток
     if(notPassedLessons.length === 0){
       bot.sendMessage(message.chat.id, "Занятие не найдено");
       return;
@@ -103,7 +103,7 @@ id: ${message.from.id}`);
     let nearestLesson = notPassedLessons[notPassedLessons.length - 1];
     for (const lesson of notPassedLessons) {
       const lessonDate = new Date(lesson.date);
-      if(lessonDate < new Date(nearestLesson.date) && lessonDate > new Date())
+      if(lessonDate < new Date(nearestLesson.date))
         nearestLesson = lesson;
     }
     
