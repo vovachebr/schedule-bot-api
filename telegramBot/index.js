@@ -78,7 +78,7 @@ bot.onText(/\/when_lesson/, (message) => {
         bot.sendMessage(message.chat.id, "Пожалуйста, посмотрите сообщение выше, и не тревожьте меня очень часто.");
         return;
       }
-      const banTime = (message.date) + 18000;
+      const banTime = (message.date) + 30000;
 
       bot.sendMessage(message.chat.id, `
 По человечески просил ведь 😡. Не использовать команду часто 🤬.
@@ -132,7 +132,7 @@ bot.onText(/\/forgive/, async (message) => {
   }
 
   const id = replyMessage.text.split("id: ")[1];
-  const user = replyMessage.text.split(",")[0];
+  const user = replyMessage.text.split("\n")[1];
   bot.restrictChatMember(message.chat.id, id, {can_send_messages: true});
   bot.sendMessage(message.chat.id, `Пользователь: ${user} помилован.`);
 });
