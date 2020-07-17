@@ -53,7 +53,7 @@ function getEditImage(callback){
       editableImage.blit(userName, part * 32, part * 71);
 
       if(userAvatar.position){
-        buffer = text2png(formatLessonName(userAvatar.position), params);
+        buffer = text2png(formatLessonName(userAvatar.position, 27), params);
         let userPosition = await Jimp.read(Buffer.from(buffer.buffer));
         editableImage.blit(userPosition, part * 32, part * 83);
       }
@@ -64,8 +64,7 @@ function getEditImage(callback){
   }
 }
 
-function formatLessonName(name = ''){
-  const maxLineLength = 20;
+function formatLessonName(name = '', maxLineLength = 20){
   const separated = name.split(" ");
   let accomulator = 0;
   let newName = "";
