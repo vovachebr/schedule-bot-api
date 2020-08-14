@@ -6,16 +6,9 @@ const { getEditImage } = require('./../util/imageEditor');
 const upload = multer({ encoding: 'unicode' });
 router.post("/addImage",upload.single('avatar'), async (request, response) => {
   const typeWithName = request.file.originalname.split('.')[0].trim();
-  let [type, name, position] = typeWithName.split("_");
-  if(!["defaultuser", "преподаватель", "фон", "лого"].includes(type)){
-    response.json({ success: false, error: "Отсутствует правильный префикс, изображение не было добавлено"});
-    return;
-  }
-
-  if(type === 'лого'){
-    name = "logo";
-  }
-
+  let [name, position] = typeWithName.split("_");
+  const type = 'преподаватель';
+  
   const finalImg = {
     image:  Buffer.from(request.file.buffer),
     type,
