@@ -3,7 +3,7 @@ const text2png = require('text2png');
 const { connect } = require('./mongoConnector');
 
 function getEditImage(callback){
-  return (user, lessonName, time, date) => {
+  return (user, lessonName, time) => {
     lessonName = formatLessonName(lessonName);
     const part = 2.5;
 

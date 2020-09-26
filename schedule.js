@@ -65,7 +65,7 @@ function sendLessonNotification(lesson, hook){
           },
         },{
           "type": "image",
-          "image_url": encodeURI(`${process.env.URL}/api/images/getModifiedImage?user=${lesson.teacher}&time=${lesson.time}&date=${lesson.date}&lessonName=${lesson.lecture}`),
+          "image_url": encodeURI(`${process.env.URL}/api/images/getModifiedImage?user=${lesson.teacher}&time=${lesson.time}&lessonName=${lesson.lecture}`),
           "alt_text": "изображение с анонсом занятия"
         }
       ];
