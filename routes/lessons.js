@@ -113,8 +113,7 @@ router.post("/sendNotification", (request, response) => {
 
     const lesson = await lessonsCollection.findOne({id});
     const hook = await hooksCollection.findOne({group: lesson.group});
-
-    schedule.sendLessonNotification(lesson, hook)
+    schedule.sendLessonNotification(lesson, hook, false);
     response.json({ success: true, data:"Уведомление отправлено"});
     lessonsCollection.updateMany({id}, {$set: {isSent: true}});
   });

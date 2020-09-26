@@ -28,6 +28,7 @@ router.post("/add", (request, response) => {
       return;
     }
 
+    channel = channel.toLowerCase();
     await hooksCollection.insertOne({ value, group, channel, channelId, messegerType: "slack" });
     foundHooks = await hooksCollection.find({}).toArray();
     response.json({ success: true, hooks: foundHooks});
@@ -59,6 +60,8 @@ router.post("/update", (request, response) => {
     response.json({ success: false, error: "value или channelId отсутствует"});
     return;
   }
+
+  channel = channel.toLowerCase();
 
   connect(async (client) => {
     const db = client.db("schedule");

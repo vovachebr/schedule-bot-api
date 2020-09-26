@@ -3,6 +3,7 @@ const bot = require('./telegramBot');
 const { getEditImage } = require('./util/imageEditor');
 const getLessonText = require('./util/lessonFormatter');
 const { connect } = require('./util/mongoConnector');
+const Logger = require('./util/logger');
 
 const sleep = async () => {
   return await new Promise(resolve => setTimeout(resolve, 10000))//задержка 10сек
@@ -29,26 +30,15 @@ function schedule(){
   });
 }
 
-function test(){
-  connect(async dataBaseClient => {
-    const db = dataBaseClient.db("schedule");
-    const lessonsCollection = db.collection("lessons");
-    const hooksCollection = db.collection("hooks");
-   
-    const lessons = await lessonsCollection.find({isSent: true}).toArray() || [];
-    const sender = async () => {
-      for(const lesson of lessons){
-        const hook = await hooksCollection.findOne({group: "unknown"});
-        await sleep();
-        sendLessonNotification(lesson, hook || {});
-      }
-    }
-    await sender();
-  });
-}
-
 function sendLessonNotification(lesson, hook){
+  if(!hook){
+    const lessonString = JSON.stringify(lesson, null, 2);
+    Logger.sendMessage(`*Ошибка!* Не найден хук для занятия. Отправка не была выполнена \n \`\`\` ${lessonString}\`\`\``);
+    return;
+  }
+
   if(!hook.messegerType){
+    Logger.sendMessage(`*Ошибка!* Отсутствует тип месседжера. Отправка не была выполенна \n \`\`\` ${lessonString}\`\`\``);
     return;
   }
 
@@ -79,7 +69,10 @@ function sendLessonNotification(lesson, hook){
     telegram: (lesson, hook) => {
       let text = getLessonText(lesson);
       const actionCallBack = getEditImage(image => {
-        bot.sendPhoto(hook.channelId, image, {caption: text})
+        bot.sendPhoto(hook.channelId, image, {caption: text}).then((sentMessage) => {
+          bot.pinChatMessage(sentMessage.chat.id, sentMessage.message_id);
+          Logger.sendMessage(`Уведомление успешно отправлено в телеграмм \n \`\`\` ${JSON.stringify(lesson, null, 2)} \`\`\` `);
+        })
       });
       actionCallBack(lesson.teacher, lesson.lecture, lesson.time);
     }
@@ -113,17 +106,24 @@ function sendSlackMessage(hook, data){
     console.error('error:', error); // Print the error if one occurred
     console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
     console.log('body:', body); // Print the HTML for the Google homepage.
+    const message = JSON.stringify(data.blocks, null, 2);
+    if(response && response.statusCode === 200){
+      Logger.sendMessage(`Уведомление успешно отправлено в слак \`\`\` ${message} \`\`\` `);
+    } else {
+      Logger.sendMessage(`*FATAL ERROR!!!* Неизвестная ошибка. \`\`\` statusCode:  ${response.statusCode} \n body: ${body} \n ${message} \`\`\` `);
+    }
   });
 }
 
 function sendTelegramMessage(hook, message){
   const { channelId } = hook;
-  bot.sendMessage(channelId, message);
+  bot.sendMessage(channelId, message).then((sentMessage) => {
+    bot.pinChatMessage(sentMessage.chat.id, sentMessage.message_id);
+  });
 }
 
 module.exports = {
   scheduler: schedule, 
-  test: test,
   sendSlackMessage, 
   sendTelegramMessage, 
   sendLessonNotification
