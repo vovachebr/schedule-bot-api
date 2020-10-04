@@ -112,7 +112,15 @@ router.post("/sendNotification", (request, response) => {
     const hooksCollection = db.collection("hooks");
 
     const lesson = await lessonsCollection.findOne({id});
+    if(!lesson){
+      response.json({ success: false, error:"Занятие не найдено"});
+      return;
+    }
     const hook = await hooksCollection.findOne({group: lesson.group});
+    if(!hook){
+      response.json({ success: false, error:"Хук не найден. Отправка не выполнится"});
+      return;
+    }
     schedule.sendLessonNotification(lesson, hook, false);
     response.json({ success: true, data:"Уведомление отправлено"});
     lessonsCollection.updateMany({id}, {$set: {isSent: true}});

@@ -9,6 +9,15 @@ const sleep = async () => {
   return await new Promise(resolve => setTimeout(resolve, 10000))//задержка 10сек
 }
 
+const formatLessonForLogger = (lessonObject) => {
+  let resultMessage = "";
+  resultMessage += `Тема занятия: *${lessonObject.lecture}* \n`;
+  resultMessage += `Преподаватель: *${lessonObject.teacher}* \n`;
+  resultMessage += `Дата: *${lessonObject.date.split('-').reverse().join('.')}* \n`;
+  resultMessage += `Время: *${lessonObject.time}*`;
+  return resultMessage;
+}
+
 function schedule(){
   connect(async dataBaseClient => {
     const db = dataBaseClient.db("schedule");
@@ -32,13 +41,12 @@ function schedule(){
 
 function sendLessonNotification(lesson, hook){
   if(!hook){
-    const lessonString = JSON.stringify(lesson, null, 2);
-    Logger.sendMessage(`*Ошибка!* Не найден хук для занятия. Отправка не была выполнена \n \`\`\` ${lessonString}\`\`\``);
+    Logger.sendMessage("*Ошибка!* Не найден хук для занятия. Отправка не была выполнена. \n" + formatLessonForLogger(lesson));
     return;
   }
 
   if(!hook.messegerType){
-    Logger.sendMessage(`*Ошибка!* Отсутствует тип месседжера. Отправка не была выполенна \n \`\`\` ${lessonString}\`\`\``);
+    Logger.sendMessage("*Ошибка!* Отсутствует тип месседжера. Отправка не была выполенна. \n" + formatLessonForLogger(lesson));
     return;
   }
 
@@ -64,14 +72,21 @@ function sendLessonNotification(lesson, hook){
         text,
         blocks: data
       }
-      sendSlackMessage(hook, data);
+      const loggerObject = {
+        "Тема занятия": lesson.lecture,
+        "Преподаватель": lesson.teacher,
+        "Группа": lesson.group,
+        "Дата": lesson.date.split('-').reverse().join('.'),
+        "Время": lesson.time,
+      }
+      sendSlackMessage(hook, data, loggerObject);
     },
     telegram: (lesson, hook) => {
       let text = getLessonText(lesson);
       const actionCallBack = getEditImage(image => {
         bot.sendPhoto(hook.channelId, image, {caption: text}).then((sentMessage) => {
           bot.pinChatMessage(sentMessage.chat.id, sentMessage.message_id);
-          Logger.sendMessage(`Уведомление успешно отправлено в телеграмм \n \`\`\` ${JSON.stringify(lesson, null, 2)} \`\`\` `);
+          Logger.sendMessage(`Уведомление успешно отправлено в *телеграмм* \n \`\`\` ${JSON.stringify(lesson, null, 2)} \`\`\` `);
         })
       });
       actionCallBack(lesson.teacher, lesson.lecture, lesson.time);
@@ -81,7 +96,7 @@ function sendLessonNotification(lesson, hook){
   configuration[hook.messegerType] && configuration[hook.messegerType](lesson, hook); // Вызов конфигурации
 }
 
-function sendSlackMessage(hook, data){
+function sendSlackMessage(hook, data, loggerObject = {}){
   const uri = hook.value;
   let sendData = data;
   if (typeof data === "string"){
@@ -103,22 +118,28 @@ function sendSlackMessage(hook, data){
     json: sendData
   }
   request(options, (error, response, body) => {
-    console.error('error:', error); // Print the error if one occurred
-    console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-    console.log('body:', body); // Print the HTML for the Google homepage.
-    const message = JSON.stringify(data.blocks, null, 2);
-    if(response && response.statusCode === 200){
-      Logger.sendMessage(`Уведомление успешно отправлено в слак \`\`\` ${message} \`\`\` `);
-    } else {
-      Logger.sendMessage(`*FATAL ERROR!!!* Неизвестная ошибка. \`\`\` statusCode:  ${response.statusCode} \n body: ${body} \n ${message} \`\`\` `);
+    let sendMessage = response && response.statusCode === 200 ? 
+      "Уведомление успешно отправлено в слак \n" :
+      "*FATAL ERROR!!!* Неизвестная ошибка. \nstatusCode: " + response.statusCode + "\n";
+
+    for(prop in loggerObject){
+      sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
     }
+    Logger.sendMessage(sendMessage);
   });
 }
 
-function sendTelegramMessage(hook, message){
+function sendTelegramMessage(hook, message, loggerObject = {}){
   const { channelId } = hook;
+
   bot.sendMessage(channelId, message).then((sentMessage) => {
     bot.pinChatMessage(sentMessage.chat.id, sentMessage.message_id);
+
+    let sendMessage = "Сообщение успешно отправлено в телеграмм \n";
+    for(prop in loggerObject){
+      sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
+    }
+    Logger.sendMessage(sendMessage);
   });
 }
 

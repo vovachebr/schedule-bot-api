@@ -35,7 +35,12 @@ router.post("/sendInstantMessage", (request, response) => {
 
     const hook = await hooksCollection.findOne({channel});
     const sender = configer[hook.messegerType];
-    sender(hook, text);
+    const messageToLogger = {
+      "Тип": "Текстовое сообщение",
+      "Группа": hook.channel,
+      "Текст сообщения": text
+    };
+    sender(hook, text, messageToLogger);
     response.json({ success: true});
   });
 });

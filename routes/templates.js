@@ -24,7 +24,14 @@ router.get("/start", (require, response) => {
       const template = todayTemplates[i];
       const hook = await hooksCollection.findOne({channel: template.schedule.channel});
       const sender = configer[hook.messegerType];
-      sender(hook, template.value);
+
+      const loggerMessage = {
+        "Тип сообщения": "Шаблон по расписанию", 
+        "Имя шаблона": template.title,
+        "Канал": hook.channel,
+        "Дата": template.schedule.date || "неизвестно",
+      }
+      sender(hook, template.value, loggerMessage);
       await templatesCollection.findOneAndUpdate({id: template.id}, {$unset: {schedule:""}})
     }
     response.json({ success: true});
