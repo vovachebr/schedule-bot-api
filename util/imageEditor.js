@@ -49,7 +49,7 @@ function getEditImage(callback){
 
       editableImage.blit(lessonTextImage, part * 6, part * 25);
       editableImage.blit(timeTextImage, part * 13, part * 13.5);
-      editableImage.blit(userAvatarImage, part * 6, part * 70);
+      editableImage.blit(userAvatarImage, part * 6.5, part * 70);
       editableImage.blit(userName, part * 32, part * 71);
 
       if(userAvatar.position){
