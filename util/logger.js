@@ -1,5 +1,5 @@
-const { LOGGER_CHAT_ID } = process.env;
-const bot = require('../telegramBot');
+const { connect } = require('./mongoConnector');
+const request = require('request');
 
 class Logger {
   static sendUserTextMessage(user, message){
@@ -7,11 +7,29 @@ class Logger {
     sendMessage += "Имя: *" + user.real_name + "*\n";
     sendMessage += "Отображаемое имя: *" + user.profile.display_name + "*\n";
     sendMessage += "Аватар: " + (user.profile.image_192 || "").replace(/_/g, `\\_`) + "\n";
-    bot.sendMessage(LOGGER_CHAT_ID, sendMessage, {parse_mode: 'Markdown'});
+    this.sendMessage(sendMessage);
   }
 
   static sendMessage(message){
-    bot.sendMessage(LOGGER_CHAT_ID, message, {parse_mode: 'Markdown'});
+    const sendData = {
+      blocks: [
+      {
+        "type": "section",
+        text:{
+          "type": "mrkdwn",
+          text: message
+        }
+      }
+    ]};
+    
+    connect(async (client) => {
+      const db = client.db("schedule");
+      const hooksCollection = db.collection("hooks");
+      const hook = await hooksCollection.findOne({channel: "secret"});
+      options = { uri: hook.value, method: 'POST', json: sendData}
+
+      request(options);
+    });
   }
 }
 

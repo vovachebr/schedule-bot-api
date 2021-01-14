@@ -120,7 +120,7 @@ function sendSlackMessage(hook, data, loggerObject = {}){
   request(options, (error, response, body) => {
     let sendMessage = response && response.statusCode === 200 ? 
       "Уведомление успешно отправлено в слак \n" :
-      "*FATAL ERROR!!!* Неизвестная ошибка. \nstatusCode: " + response.statusCode + "\n";
+      "*FATAL ERROR!!!* @here Неизвестная ошибка. \nstatusCode: " + response.statusCode + "\n";
 
     for(prop in loggerObject){
       sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
