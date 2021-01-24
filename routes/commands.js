@@ -10,6 +10,7 @@ const Logger = require('./../util/logger');
 router.post("/addme", (request, response) => {
   const channelName = request.body.text.toLowerCase();
   const userId = request.body.user_id;
+  const channelId = request.body.channel_id;
    
   connect(async (client) => {
     const body = request.body;
