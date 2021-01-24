@@ -118,14 +118,21 @@ function sendSlackMessage(hook, data, loggerObject = {}){
     json: sendData
   }
   request(options, (error, response, body) => {
-    let sendMessage = response && response.statusCode === 200 ? 
+    const course = (loggerObject['Группа'] || "-").split("-")[0].toUpperCase();
+    connect(async dataBaseClient => {
+      const db = dataBaseClient.db("schedule");
+      const coordinatorsCollection = db.collection("coordinators");
+      const coordinator = await coordinatorsCollection.findOne({course});
+      const coordinatorNotification = (coordinator && `<@${coordinator.id}>`) || "Координатор не найден @here";
+      let sendMessage = response && response.statusCode === 200 ? 
       "Уведомление успешно отправлено в слак \n" :
-      "*FATAL ERROR!!!* @here Неизвестная ошибка. \nstatusCode: " + response.statusCode + "\n";
-
-    for(prop in loggerObject){
-      sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
-    }
-    Logger.sendMessage(sendMessage);
+      `*FATAL ERROR!!!* ${coordinatorNotification} Неизвестная ошибка. \nstatusCode: ${response.statusCode}\n`;
+      
+      for(prop in loggerObject){
+        sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
+      }
+      Logger.sendMessage(sendMessage);
+    });
   });
 }
 
