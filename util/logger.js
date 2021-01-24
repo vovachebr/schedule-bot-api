@@ -2,11 +2,12 @@ const { connect } = require('./mongoConnector');
 const request = require('request');
 
 class Logger {
-  static sendUserTextMessage(user, message){
+  static sendUserTextMessage(user = { profile: {}}, channelName, message){
     let sendMessage = message + "\n";
+    sendMessage += `Пользователь: <@${user.id}>\n`;
     sendMessage += "Имя: *" + user.real_name + "*\n";
     sendMessage += "Отображаемое имя: *" + user.profile.display_name + "*\n";
-    sendMessage += "Аватар: " + (user.profile.image_192 || "").replace(/_/g, `\\_`) + "\n";
+    sendMessage += "Из группы: *" + channelName + "*\n";
     this.sendMessage(sendMessage);
   }
 
