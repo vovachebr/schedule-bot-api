@@ -1,10 +1,10 @@
 const router = require('express').Router();
-const multer  = require('multer');
+const multer = require('multer');
 const { connect } = require('./../util/mongoConnector');
 const { getEditImage } = require('./../util/imageEditor');
 
 const upload = multer({ encoding: 'unicode' });
-router.post("/addImage",upload.single('avatar'), async (request, response) => {
+router.post("/addImage", upload.single('avatar'), async (request, response) => {
   const typeWithName = request.file.originalname.split('.')[0].trim();
   let [name, position] = typeWithName.split("_");
   const type = 'преподаватель';
