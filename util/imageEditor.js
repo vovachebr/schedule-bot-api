@@ -23,11 +23,13 @@ function getEditImage(callback){
       const params = {
         color: IMAGE_TEXT_COLOR,
         output: "buffer",
+        lineSpacing: 10,
         font: `${sizes[lessonName.split('\n').length-1]}px "Arial"`
       }
       let buffer = text2png(lessonName, params);
       let lessonTextImage = await Jimp.read(Buffer.from(buffer.buffer));
-      params.font = `${part * 7}px "Arial"`
+      params.font = `${part * 7}px "Arial"`;
+      params.lineSpacing = 2;
       buffer = text2png(time, params);
       let timeTextImage = await Jimp.read(Buffer.from(buffer.buffer));
 
