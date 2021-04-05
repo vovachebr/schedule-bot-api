@@ -8,7 +8,8 @@ const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, {
 });
 
 bot.onText(/\/create_hook/, async (message) => {
-  const data = await bot.getChatMember(message.chat.id, message.from.id)
+  const data = await bot.getChatMember(message.chat.id, message.from.id);
+  bot.deleteMessage(message.chat.id, message.message_id);
   if ((data.status !== "creator") && (data.status !== "administrator")){
     bot.sendMessage(message.chat.id, "Ошибка! Команда доступна только администраторам.");
     return;
@@ -32,7 +33,8 @@ bot.onText(/\/create_hook/, async (message) => {
 });
 
 bot.onText(/\/remove_hook/, async (message) => {
-  const data = await bot.getChatMember(message.chat.id, message.from.id)
+  const data = await bot.getChatMember(message.chat.id, message.from.id);
+  bot.deleteMessage(message.chat.id, message.message_id);
   if ((data.status !== "creator") && (data.status !== "administrator")){
     bot.sendMessage(message.chat.id, "Ошибка! Команда доступна только администраторам.");
     return;
@@ -60,6 +62,7 @@ bot.onText(/\/when_lesson/, (message) => {
     const hooksCollection = db.collection("hooks");
     const lessonsCollection = db.collection("lessons");
 
+    bot.deleteMessage(message.chat.id, message.message_id);
     const hook = await hooksCollection.findOne({$or: [{channelId: message.chat.id},{group: message.chat.title}]});
     if(!hook){
       client.close();
@@ -120,7 +123,8 @@ ${myData.status == "administrator" ? 'Иначе будут применятьс
 });
 
 bot.onText(/\/forgive/, async (message) => {
-  const data = await bot.getChatMember(message.chat.id, message.from.id)
+  const data = await bot.getChatMember(message.chat.id, message.from.id);
+  bot.deleteMessage(message.chat.id, message.message_id);
   if ((data.status !== "creator") && (data.status !== "administrator")){
     bot.sendMessage(message.chat.id, "Ошибка! Команда доступна только администраторам.");
     return;
