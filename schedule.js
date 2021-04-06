@@ -26,6 +26,7 @@ function schedule(){
    
     const today = new Date().toISOString().slice(0,10); // сегодня в формате YYYY-MM-DD
     const lessons = await lessonsCollection.find({date:today, isSent: false}).toArray() || [];
+    const earlyNotifications = await lessonsCollection.find({earlyNotificationDate:today}).toArray() || [];
     
     const sender = async () => {
       for(const lesson of lessons){
@@ -33,13 +34,19 @@ function schedule(){
         await sleep();
         sendLessonNotification(lesson, hook || {});
       }
+
+      for(const notification of earlyNotifications){
+        const hook = await hooksCollection.findOne({group: notification.group});
+        await sleep();
+        sendLessonNotification(notification, hook || {}, true);
+      }
     }
     await sender();
     await lessonsCollection.updateMany({date:today}, {$set: {isSent: true}});
   });
 }
 
-function sendLessonNotification(lesson, hook){
+function sendLessonNotification(lesson, hook, isEarly = false){
   if(!hook){
     Logger.sendMessage("*Ошибка!* Не найден хук для занятия. Отправка не была выполнена. \n" + formatLessonForLogger(lesson));
     return;
@@ -53,7 +60,7 @@ function sendLessonNotification(lesson, hook){
   lesson.date = lesson.date.split('-').reverse().join('.');
   const configuration = {
     slack: (lesson, hook) => {
-      let text = "<!channel> \n" + getLessonText(lesson);
+      let text = "<!channel> \n" + (isEarly ? lesson.earlyNotificationText : getLessonText(lesson));
       data = [
         {
           "type": "section",
@@ -79,10 +86,14 @@ function sendLessonNotification(lesson, hook){
         "Дата": lesson.date.split('-').reverse().join('.'),
         "Время": lesson.time,
       }
+      if(isEarly){
+        loggerObject["Дата предварительного уведомления"] = lesson.earlyNotificationDate.split('-').reverse().join('.');
+        loggerObject["Дата предварительного уведомления"] = lesson.earlyNotificationDate.split('-').reverse().join('.');
+      }
       sendSlackMessage(hook, data, loggerObject);
     },
     telegram: (lesson, hook) => {
-      let text = getLessonText(lesson);
+      let text = isEarly ? lesson.earlyNotificationText : getLessonText(lesson);
       const actionCallBack = getEditImage(image => {
         bot.sendPhoto(hook.channelId, image, {caption: text}).then((sentMessage) => {
           bot.pinChatMessage(sentMessage.chat.id, sentMessage.message_id);

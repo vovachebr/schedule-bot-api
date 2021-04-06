@@ -5,9 +5,17 @@ const { connect } = require('./../util/mongoConnector');
 
 router.post("/add", (request, response) => {
   let { group, date, time, teacher, lecture, additional } = request.body;
+  let { earlyNotificationDate, earlyNotificationText } = request.body;
+
+  if(earlyNotificationDate){
+    earlyNotificationDate = new Date(earlyNotificationDate).toISOString().slice(0,10);
+  }
 
   let error = "";
   for (const prop in request.body) {
+    if(prop === 'earlyNotificationDate' || prop === 'earlyNotificationText')
+      continue;
+
     if (request.body.hasOwnProperty(prop)) {
       const element = request.body[prop];
       
@@ -31,7 +39,7 @@ router.post("/add", (request, response) => {
       return
     }
 
-    await lessonsCollection.insertOne({ group, date, time, teacher, lecture, additional, id: uuid.v1(), isSent: false})
+    await lessonsCollection.insertOne({ group, date, time, teacher, lecture, additional, id: uuid.v1(), isSent: false, earlyNotificationDate, earlyNotificationText});
     response.json({ success: true });
   });
 });
