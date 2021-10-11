@@ -98,7 +98,7 @@ function sendLessonNotification(lesson, hook, isEarly = false){
         bot.sendPhoto(hook.channelId, image, {caption: text}).then((sentMessage) => {
           bot.pinChatMessage(sentMessage.chat.id, sentMessage.message_id);
           Logger.sendMessage(`Уведомление успешно отправлено в *телеграмм* \n \`\`\` ${JSON.stringify(lesson, null, 2)} \`\`\` `);
-        })
+        }).catch(error => Logger.sendMessage(`*Ошибка!* ${error.message}`))
       });
       actionCallBack(lesson.teacher, lesson.lecture, lesson.time);
     }
