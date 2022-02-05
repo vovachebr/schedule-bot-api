@@ -85,6 +85,7 @@ function sendLessonNotification(lesson, hook, isEarly = false){
         "Группа": lesson.group,
         "Дата": lesson.date.split('-').reverse().join('.'),
         "Время": lesson.time,
+        "Является записью": lesson.isRecordedVideo,
       }
       if(isEarly){
         loggerObject["Дата предварительного уведомления"] = lesson.earlyNotificationDate.split('-').reverse().join('.');
@@ -134,7 +135,7 @@ function sendSlackMessage(hook, data, loggerObject = {}){
       const db = dataBaseClient.db("schedule");
       const coordinatorsCollection = db.collection("coordinators");
       const coordinator = await coordinatorsCollection.findOne({course});
-      const coordinatorNotification = (coordinator && `<@${coordinator.id}>`) || "Координатор не найден @here";
+      const coordinatorNotification = (coordinator && `<@${coordinator.id}>`) || "@here";
       let sendMessage = response && response.statusCode === 200 ? 
       "Уведомление успешно отправлено в слак \n" :
       `*FATAL ERROR!!!* ${coordinatorNotification} Неизвестная ошибка. \nstatusCode: ${response.statusCode}\n`;

@@ -19,6 +19,7 @@ router.post("/addme", (request, response) => {
 
     const hook = await hooksCollection.findOne({channel: channelName});
     if(!hook){
+      client.close();
       response.json({
         response_type: "ephemeral",
         text: `Канал ${channelName} не найден. Обратитесь к координатору курса за помощью.`

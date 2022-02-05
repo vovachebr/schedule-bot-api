@@ -30,12 +30,21 @@ function getEditImage(callback){
       let lessonTextImage = await Jimp.read(Buffer.from(buffer.buffer));
       params.font = `${part * 7}px "Arial"`;
       params.lineSpacing = 2;
-      buffer = text2png(time, params);
-      let timeTextImage = await Jimp.read(Buffer.from(buffer.buffer));
+      if (time=== "00:00") {
+        time = "любое время";
+        params.font = `${part*4}px "Arial"`;
+        buffer = text2png(time, params);
+        let timeTextImage = await Jimp.read(Buffer.from(buffer.buffer));  
+        await editableImage.resize(part * 200, part * 100);
+        editableImage.blit(timeTextImage, part * 9, part * 14.5);
+      } else {
+        buffer = text2png(time, params);
+        let timeTextImage = await Jimp.read(Buffer.from(buffer.buffer));  
+        await editableImage.resize(part * 200, part * 100);
+        editableImage.blit(timeTextImage, part * 13, part * 13.5);
+      }
 
-      await editableImage.resize(part * 200, part * 100);
       editableImage.blit(lessonTextImage, part * 6, part * 25);
-      editableImage.blit(timeTextImage, part * 13, part * 13.5);
       const users = user.split(",");
       if(users.length === 1){
         let userAvatar = await imagesCollection.findOne({name: user});

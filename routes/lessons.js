@@ -4,7 +4,7 @@ const router = require('express').Router();
 const { connect } = require('./../util/mongoConnector');
 
 router.post("/add", (request, response) => {
-  let { group, date, time, teacher, lecture, additional } = request.body;
+  let { group, date, time, teacher, lecture, additional, isRecordedVideo } = request.body;
   let { earlyNotificationDate, earlyNotificationText } = request.body;
 
   if(earlyNotificationDate){
@@ -39,7 +39,7 @@ router.post("/add", (request, response) => {
       return
     }
 
-    await lessonsCollection.insertOne({ group, date, time, teacher, lecture, additional, id: uuid.v1(), isSent: false, earlyNotificationDate, earlyNotificationText});
+    await lessonsCollection.insertOne({ group, date, time, teacher, lecture, additional, isRecordedVideo, id: uuid.v1(), isSent: false, earlyNotificationDate, earlyNotificationText});
     response.json({ success: true });
   });
 });
