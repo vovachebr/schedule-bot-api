@@ -16,7 +16,7 @@ const connect = (callback) => {
   }
 
   await callback(client);
-  client.close();
+  setTimeout(() => client.close());
 })}
 
 module.exports = {
