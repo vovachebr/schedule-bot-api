@@ -36,8 +36,8 @@ function getEditImage(callback){
       await editableImage.resize(part * 200, part * 100);
       editableImage.blit(lessonTextImage, part * 6, part * 25);
       editableImage.blit(timeTextImage, part * 13, part * 13.5);
-
-      if(!user.includes(",")){
+      const users = user.split(",");
+      if(users.length === 1){
         let userAvatar = await imagesCollection.findOne({name: user});
         if(!userAvatar){
           userAvatar = await imagesCollection.findOne({name: "default"});
@@ -59,7 +59,7 @@ function getEditImage(callback){
           let userPosition = await Jimp.read(Buffer.from(buffer.buffer));
           editableImage.blit(userPosition, part * 32, part * 83);
         }
-      } else {
+      } else if (users.length === 2) {
         const [user1, user2] = user.split(",").map(u => u.trim());
 
         let userAvatar = await imagesCollection.findOne({name: user1});
@@ -92,6 +92,50 @@ function getEditImage(callback){
         editableImage.blit(userAvatarImage, part * 30, part * 70);
         editableImage.blit(userName, part * 57, part * 82);
 
+      } else if (users.length === 3) {
+        const [user1, user2, user3] = user.split(",").map(u => u.trim());
+
+        let userAvatar = await imagesCollection.findOne({name: user1});
+        if(!userAvatar){
+          userAvatar = await imagesCollection.findOne({name: "default"});
+        }
+        let userAvatarImage = await Jimp.read(userAvatar.image.buffer);
+        await userAvatarImage.resize(part * 22, part * 22);
+        userAvatarImage.circle();
+
+        params.font = `${part * 6}px "Arial"`;
+        buffer = text2png(user1, params);
+        let userName = await Jimp.read(Buffer.from(buffer.buffer));
+        
+        editableImage.blit(userAvatarImage, part * 6.5, part * 70);
+        editableImage.blit(userName, part * 80, part * 67);
+
+        userAvatar = await imagesCollection.findOne({name: user2});
+        if(!userAvatar){
+          userAvatar = await imagesCollection.findOne({name: "default"});
+        }
+        userAvatarImage = await Jimp.read(userAvatar.image.buffer);
+        await userAvatarImage.resize(part * 22, part * 22);
+        userAvatarImage.circle();
+
+        buffer = text2png(user2, params);
+        userName = await Jimp.read(Buffer.from(buffer.buffer));
+        editableImage.blit(userAvatarImage, part * 30, part * 70);
+        editableImage.blit(userName, part * 80, part * 77);
+
+        userAvatar = await imagesCollection.findOne({name: user3});
+        if(!userAvatar){
+          userAvatar = await imagesCollection.findOne({name: "default"});
+        }
+        userAvatarImage = await Jimp.read(userAvatar.image.buffer);
+        await userAvatarImage.resize(part * 22, part * 22);
+        userAvatarImage.circle();
+        buffer = text2png(user3, params);
+
+        userName = await Jimp.read(Buffer.from(buffer.buffer));
+
+        editableImage.blit(userAvatarImage, part * 53.5, part * 70);
+        editableImage.blit(userName, part * 80, part * 87);
       }
 
       const newBuffer = await editableImage.getBufferAsync(Jimp.AUTO);
