@@ -8,7 +8,7 @@ const { getGroupName } = require('./../util/getGroupName');
 const Logger = require('./../util/logger');
 
 router.post("/addme", (request, response) => {
-  const channelName = request.body.text.toLowerCase();
+  const channelName = request.body.text.toLowerCase().replace(/\*/g,'');
   const userId = request.body.user_id;
   const channelId = request.body.channel_id;
    
@@ -54,7 +54,7 @@ router.post("/addme", (request, response) => {
 });
 
 router.post("/moveme", (request, response) => {
-  const channelName = request.body.text.toLowerCase();
+  const channelName = request.body.text.toLowerCase().replace(/\*/g,'');
   const userId = request.body.user_id;
   const channelId = request.body.channel_id;
    
