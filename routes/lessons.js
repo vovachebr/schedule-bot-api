@@ -13,7 +13,7 @@ router.post("/add", (request, response) => {
 
   let error = "";
   for (const prop in request.body) {
-    if(prop === 'earlyNotificationDate' || prop === 'earlyNotificationText')
+    if(['earlyNotificationDate', 'earlyNotificationText', 'isRecordedVideo'].includes(prop))
       continue;
 
     if (request.body.hasOwnProperty(prop)) {
