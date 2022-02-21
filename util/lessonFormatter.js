@@ -1,7 +1,7 @@
 function getLessonText(lesson){
   let template = "Добрый день! \nСегодня, {date}, в {time} по московскому времени состоится занятие «{lecture}». Его проведет {teacher}. {additional} \n\nСсылку на трансляцию вы найдете в личном кабинете и в письме, которое сегодня придет вам на почту за два часа до лекции.";
   if(lesson.isRecordedVideo) {
-    template = "Добрый день! \nСегодня, {date}, открывается доступ к занятию «{lecture}».";
+    template = "Добрый день! \nСегодня, {date}, открывается доступ к занятию «{lecture}».\n\n{additional}";
   }
   options = {
     month: 'numeric',
