@@ -6,7 +6,7 @@ const { connect } = require('./util/mongoConnector');
 const Logger = require('./util/logger');
 
 const sleep = async () => {
-  return await new Promise(resolve => setTimeout(resolve, 10000))//задержка 10сек
+  return await new Promise(resolve => setTimeout(resolve, 15000))//задержка 15сек
 }
 
 const formatLessonForLogger = (lessonObject) => {
