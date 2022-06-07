@@ -1,35 +1,42 @@
 const { connect } = require('./mongoConnector');
-const request = require('request');
+const discordBot = require('../discordBot');
+
 
 class Logger {
-  static sendUserTextMessage(user = { profile: {}}, channelName, message){
+  static sendUserTextMessage(user = {}, channelName, message){
     let sendMessage = message + "\n";
     sendMessage += `Пользователь: <@${user.id}>\n`;
     sendMessage += "Имя: *" + user.real_name + "*\n";
-    sendMessage += "Отображаемое имя: *" + user.profile.display_name + "*\n";
     sendMessage += "Из группы: *" + channelName + "*\n";
     this.sendMessage(sendMessage);
   }
 
   static sendMessage(message){
-    const sendData = {
-      blocks: [
-      {
-        "type": "section",
-        text:{
-          "type": "mrkdwn",
-          text: message
-        }
-      }
-    ]};
-    
     connect(async (client) => {
       const db = client.db("schedule");
       const hooksCollection = db.collection("hooks");
-      const hook = await hooksCollection.findOne({channel: "secret"});
-      options = { uri: hook.value, method: 'POST', json: sendData}
+      const hook = await hooksCollection.findOne({channel: "sheduler-center"});
+      if(hook) {
+        const channel = discordBot.channels.cache.get(hook.channelId);
+        channel.send(message);
+      } else { //TODO: удалить после переезда в дискорд
+        const sendData = {
+          blocks: [
+          {
+            "type": "section",
+            text:{
+              "type": "mrkdwn",
+              text: message
+            }
+          }
+        ]};
+        const db = client.db("schedule");
+        const hooksCollection = db.collection("hooks");
+        const hook = await hooksCollection.findOne({channel: "secret"});
+        options = { uri: hook.value, method: 'POST', json: sendData}
 
-      request(options);
+        request(options);
+      }
     });
   }
 }

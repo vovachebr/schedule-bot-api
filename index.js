@@ -1,12 +1,14 @@
 require('dotenv').config();
-const { PORT } = process.env;
+const { PORT, DISCORD_BOT_TOKEN } = process.env;
 const express = require('express');
 const path = require('path');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const api = require('./routes').router;
-const bot = require('./telegramBot');
+const telegammBot = require('./telegramBot');
+const discordBot = require('./discordBot');
 
+discordBot.login(DISCORD_BOT_TOKEN);
 const app = express();
 app.use(morgan('tiny'));
 
@@ -15,7 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/api', api);
 
 app.post(`/bot${process.env.TELEGRAM_BOT_TOKEN}`, function(request, response){
-  bot.processUpdate(request.body);
+  telegammBot.processUpdate(request.body);
 });
 
 app.use(express.static(__dirname));

@@ -28,7 +28,8 @@ router.post("/sendInstantMessage", (request, response) => {
   const {channel, text} = request.body;
   const configer = {
     slack: schedule.sendSlackMessage,
-    telegram: schedule.sendTelegramMessage
+    telegram: schedule.sendTelegramMessage,
+    discord: schedule.sendDiscordMessage,
   };
 
   connect(async (client) => {

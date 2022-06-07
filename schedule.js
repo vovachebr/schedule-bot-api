@@ -1,5 +1,7 @@
 const request = require('request');
-const bot = require('./telegramBot');
+const telegramBot = require('./telegramBot');
+const discordBot = require('./discordBot');
+
 const { getEditImage } = require('./util/imageEditor');
 const getLessonText = require('./util/lessonFormatter');
 const { connect } = require('./util/mongoConnector');
@@ -23,7 +25,7 @@ function schedule(){
     const db = dataBaseClient.db("schedule");
     const lessonsCollection = db.collection("lessons");
     const hooksCollection = db.collection("hooks");
-   
+
     const today = new Date().toISOString().slice(0,10); // сегодня в формате YYYY-MM-DD
     const lessons = await lessonsCollection.find({date:today, isSent: false}).toArray() || [];
     const earlyNotifications = await lessonsCollection.find({earlyNotificationDate:today}).toArray() || [];
@@ -96,10 +98,52 @@ function sendLessonNotification(lesson, hook, isEarly = false){
     telegram: (lesson, hook) => {
       let text = isEarly ? lesson.earlyNotificationText : getLessonText(lesson);
       const actionCallBack = getEditImage(image => {
-        bot.sendPhoto(hook.channelId, image, {caption: text}).then((sentMessage) => {
-          bot.pinChatMessage(sentMessage.chat.id, sentMessage.message_id);
+        telegramBot.sendPhoto(hook.channelId, image, {caption: text}).then((sentMessage) => {
+          telegramBot.pinChatMessage(sentMessage.chat.id, sentMessage.message_id);
           Logger.sendMessage(`Уведомление успешно отправлено в *телеграмм* \n \`\`\` ${JSON.stringify(lesson, null, 2)} \`\`\` `);
         }).catch(error => Logger.sendMessage(`*Ошибка!* ${error.message}`))
+      });
+      actionCallBack(lesson.teacher, lesson.lecture, lesson.time);
+    },
+    discord: (lesson, hook) => {
+      let text = '@here \n' + (isEarly ? lesson.earlyNotificationText : getLessonText(lesson));
+      const loggerObject = {
+        "Тема занятия": lesson.lecture,
+        "Преподаватель": lesson.teacher,
+        "Группа": lesson.group,
+        "Дата": lesson.date.split('-').reverse().join('.'),
+        "Время": lesson.time,
+        "Является записью": lesson.isRecordedVideo,
+      }
+      if(isEarly){
+        loggerObject["Дата предварительного уведомления"] = lesson.earlyNotificationDate.split('-').reverse().join('.');
+        loggerObject["Дата предварительного уведомления"] = lesson.earlyNotificationDate.split('-').reverse().join('.');
+      }
+
+      const channel = discordBot.channels.cache.get(hook.channelId);
+      const actionCallBack = getEditImage(image => {
+        channel.send(text, { files: [{ attachment: image }] }).then(success => {
+          let sendMessage = "Уведомление успешно отправлено в дискорд \n"
+            for(prop in loggerObject){
+              sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
+            }
+            Logger.sendMessage(sendMessage);
+        }).catch(err => {
+          connect(async dataBaseClient => {
+            const db = dataBaseClient.db("schedule");
+            const coordinatorsCollection = db.collection("coordinators");
+            const coordinator = await coordinatorsCollection.findOne({course});
+            const coordinatorNotification = (coordinator && `<@${coordinator.id}>`) || "@here";
+            let sendMessage = `*FATAL ERROR!!!* ${coordinatorNotification} Неизвестная ошибка. \n\n`;
+            
+            for(prop in loggerObject){
+              sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
+            }
+
+            sendMessage += JSON.stringify(err);
+            Logger.sendMessage(sendMessage);
+          });
+        });
       });
       actionCallBack(lesson.teacher, lesson.lecture, lesson.time);
     }
@@ -151,8 +195,8 @@ function sendSlackMessage(hook, data, loggerObject = {}){
 function sendTelegramMessage(hook, message, loggerObject = {}){
   const { channelId } = hook;
 
-  bot.sendMessage(channelId, message).then((sentMessage) => {
-    bot.pinChatMessage(sentMessage.chat.id, sentMessage.message_id);
+  telegramBot.sendMessage(channelId, message).then((sentMessage) => {
+    telegramBot.pinChatMessage(sentMessage.chat.id, sentMessage.message_id);
 
     let sendMessage = "Сообщение успешно отправлено в телеграмм \n";
     for(prop in loggerObject){
@@ -162,9 +206,23 @@ function sendTelegramMessage(hook, message, loggerObject = {}){
   });
 }
 
+function sendDiscordMessage(hook, message, loggerObject = {}){
+  const channel = discordBot.channels.cache.get(hook.channelId);
+
+  channel.send(message).then(success => {
+    let sendMessage = "Уведомление успешно отправлено в дискорд \n"
+      for(prop in loggerObject){
+        sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
+      }
+      Logger.sendMessage(sendMessage);
+  })
+}
+
+
 module.exports = {
-  scheduler: schedule, 
-  sendSlackMessage, 
-  sendTelegramMessage, 
+  scheduler: schedule,
+  sendSlackMessage,
+  sendTelegramMessage,
+  sendDiscordMessage,
   sendLessonNotification
 };
