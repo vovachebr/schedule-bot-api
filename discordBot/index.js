@@ -2,13 +2,13 @@ const Discord = require('discord.js');
 const { connect } = require('./../util/mongoConnector');
 const Logger = require('../util/logger');
 
-const client = new Discord.Client();
+const discordBot = new Discord.Client();
 
-client.on('ready', async() => {
+discordBot.on('ready', async() => {
   console.log('Hello!');
 });
 
-client.on('message', async(message) => {
+discordBot.on('message', async(message) => {
   if(message.author.bot) return;
   if(!message.guild) return;
 
@@ -66,14 +66,14 @@ function createHook(message) {
 }
 
 function removeHook(message) {
-  connect(async (client) => {
-    const db = client.db("schedule");
+  connect(async (databaseClient) => {
+    const db = databaseClient.db("schedule");
     const hooksCollection = db.collection("hooks");
-    const channel = client.channels.cache.get(message.channel.id);
+    const channel = discordBot.channels.cache.get(message.channel.id);
 
     const hooks = await hooksCollection.find({$or: [{channelId: message.channel.id},{group: message.channel.name}]}).toArray();
     if(hooks.length == 0){
-      client.close();
+      databaseClient.close();
       channel.send("Ошибка! Хук уже удалён❗️❗️❗️");
       return;
     }
@@ -100,7 +100,7 @@ function addUserToGroup(message) {
       return;
     }
 
-    const channel = client.channels.cache.get(foundHook.channelId);
+    const channel = discordBot.channels.cache.get(foundHook.channelId);
     channel.updateOverwrite(message.member, {
       SEND_MESSAGES: true,
       VIEW_CHANNEL: true
@@ -116,4 +116,4 @@ function addUserToGroup(message) {
   });
 }
 
-module.exports = client;
+module.exports = discordBot;

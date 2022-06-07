@@ -1,11 +1,11 @@
 const request = require('request');
+const Logger = require('./util/logger');
 const telegramBot = require('./telegramBot');
 const discordBot = require('./discordBot');
 
 const { getEditImage } = require('./util/imageEditor');
 const getLessonText = require('./util/lessonFormatter');
 const { connect } = require('./util/mongoConnector');
-const Logger = require('./util/logger');
 
 const sleep = async () => {
   return await new Promise(resolve => setTimeout(resolve, 15000))//задержка 15сек

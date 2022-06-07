@@ -58,7 +58,7 @@ router.post("/moveme", (request, response) => {
   const channelName = request.body.text.toLowerCase().replace(/\*/g,'');
   const userId = request.body.user_id;
   const channelId = request.body.channel_id;
-   
+
   connect(async (client) => {
     const body = request.body;
     const db = client.db("schedule");
