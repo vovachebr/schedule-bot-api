@@ -15,7 +15,7 @@ client.on('message', async(message) => {
   const roles = Array.from(message.member.roles.cache).map(e => e[1].name.toLowerCase());
 
   if(message.content.includes('/create_hook')) {
-    if(!roles.includes('coordinator')) {
+    if(!roles.includes('coordinator') && !roles.includes('координатор')) {
       message.reply('Ошибка! Данная комманда доступна только координаторам');
       return;
     }
@@ -25,7 +25,7 @@ client.on('message', async(message) => {
   }
 
   if(message.content.includes('/remove_hook')) {
-    if(!roles.includes('coordinator')) {
+    if(!roles.includes('coordinator') && !roles.includes('координатор')) {
       message.reply('Ошибка! Данная комманда доступна только координаторам❗️❗️❗️');
       return;
     }

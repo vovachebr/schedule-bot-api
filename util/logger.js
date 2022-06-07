@@ -19,23 +19,6 @@ class Logger {
       if(hook) {
         const channel = discordBot.channels.cache.get(hook.channelId);
         channel.send(message);
-      } else { //TODO: удалить после переезда в дискорд
-        const sendData = {
-          blocks: [
-          {
-            "type": "section",
-            text:{
-              "type": "mrkdwn",
-              text: message
-            }
-          }
-        ]};
-        const db = client.db("schedule");
-        const hooksCollection = db.collection("hooks");
-        const hook = await hooksCollection.findOne({channel: "secret"});
-        options = { uri: hook.value, method: 'POST', json: sendData}
-
-        request(options);
       }
     });
   }
