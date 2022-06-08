@@ -96,7 +96,7 @@ function addUserToGroup(message) {
     }
     if(!foundHook){
       message.reply(`Канал **${group}** не найден. Обратитесь к координатору курса за помощью.`);
-      Logger.sendUserTextMessage(userToLogging, message.channel.name, `Неудачная попытка пользователя перенестись в канал *${group}*. ☹️`);
+      Logger.sendUserTextMessage(userToLogging, message.channel.name, `Неудачная попытка пользователя перенестись в канал *${group}*. ☹️`, discordBot);
       return;
     }
 
@@ -107,11 +107,11 @@ function addUserToGroup(message) {
     })
     .then(res => {
       message.reply(`Успешно добавил вас в канал **${group}**`);
-      Logger.sendUserTextMessage(userToLogging, message.channel.name, `Удачная попытка пользователя перенестись в канал *${group}*. 🎉`);
+      Logger.sendUserTextMessage(userToLogging, message.channel.name, `Удачная попытка пользователя перенестись в канал *${group}*. 🎉`, discordBot);
     })
     .catch(err => {
       message.reply('Кажется, у меня возникла какая-то ошика');
-      Logger.sendUserTextMessage(userToLogging, message.channel.name, `Неудачная попытка пользователя перенестись в канал *${group}*. ☹️ \n ОШИБКА: ${JSON.stringify(err)} \n`)
+      Logger.sendUserTextMessage(userToLogging, message.channel.name, `Неудачная попытка пользователя перенестись в канал *${group}*. ☹️ \n ОШИБКА: ${JSON.stringify(err)} \n`, discordBot);
     });
   });
 }

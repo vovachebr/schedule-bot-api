@@ -1,8 +1,8 @@
 const request = require('request');
-const Logger = require('./util/logger');
 const telegramBot = require('./telegramBot');
 const discordBot = require('./discordBot');
 
+const Logger = require('./util/logger');
 const { getEditImage } = require('./util/imageEditor');
 const getLessonText = require('./util/lessonFormatter');
 const { connect } = require('./util/mongoConnector');
@@ -50,12 +50,12 @@ function schedule(){
 
 function sendLessonNotification(lesson, hook, isEarly = false){
   if(!hook){
-    Logger.sendMessage("*Ошибка!* Не найден хук для занятия. Отправка не была выполнена. \n" + formatLessonForLogger(lesson));
+    Logger.sendMessage("*Ошибка!* Не найден хук для занятия. Отправка не была выполнена. \n" + formatLessonForLogger(lesson), discordBot);
     return;
   }
 
   if(!hook.messegerType){
-    Logger.sendMessage("*Ошибка!* Отсутствует тип месседжера. Отправка не была выполенна. \n" + formatLessonForLogger(lesson));
+    Logger.sendMessage("*Ошибка!* Отсутствует тип месседжера. Отправка не была выполенна. \n" + formatLessonForLogger(lesson), discordBot);
     return;
   }
 
@@ -100,8 +100,8 @@ function sendLessonNotification(lesson, hook, isEarly = false){
       const actionCallBack = getEditImage(image => {
         telegramBot.sendPhoto(hook.channelId, image, {caption: text}).then((sentMessage) => {
           telegramBot.pinChatMessage(sentMessage.chat.id, sentMessage.message_id);
-          Logger.sendMessage(`Уведомление успешно отправлено в *телеграмм* \n \`\`\` ${JSON.stringify(lesson, null, 2)} \`\`\` `);
-        }).catch(error => Logger.sendMessage(`*Ошибка!* ${error.message}`))
+          Logger.sendMessage(`Уведомление успешно отправлено в *телеграмм* \n \`\`\` ${JSON.stringify(lesson, null, 2)} \`\`\` `, discordBot);
+        }).catch(error => Logger.sendMessage(`*Ошибка!* ${error.message}`, discordBot))
       });
       actionCallBack(lesson.teacher, lesson.lecture, lesson.time);
     },
@@ -127,7 +127,7 @@ function sendLessonNotification(lesson, hook, isEarly = false){
             for(prop in loggerObject){
               sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
             }
-            Logger.sendMessage(sendMessage);
+            Logger.sendMessage(sendMessage, discordBot);
         }).catch(err => {
           connect(async dataBaseClient => {
             const db = dataBaseClient.db("schedule");
@@ -141,7 +141,7 @@ function sendLessonNotification(lesson, hook, isEarly = false){
             }
 
             sendMessage += JSON.stringify(err);
-            Logger.sendMessage(sendMessage);
+            Logger.sendMessage(sendMessage, discordBot);
           });
         });
       });
@@ -187,7 +187,7 @@ function sendSlackMessage(hook, data, loggerObject = {}){
       for(prop in loggerObject){
         sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
       }
-      Logger.sendMessage(sendMessage);
+      Logger.sendMessage(sendMessage, discordBot);
     });
   });
 }
@@ -202,7 +202,7 @@ function sendTelegramMessage(hook, message, loggerObject = {}){
     for(prop in loggerObject){
       sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
     }
-    Logger.sendMessage(sendMessage);
+    Logger.sendMessage(sendMessage, discordBot);
   });
 }
 
@@ -214,7 +214,7 @@ function sendDiscordMessage(hook, message, loggerObject = {}){
       for(prop in loggerObject){
         sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
       }
-      Logger.sendMessage(sendMessage);
+      Logger.sendMessage(sendMessage, discordBot);
   })
 }
 
