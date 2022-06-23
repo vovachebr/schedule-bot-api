@@ -33,11 +33,6 @@ discordBot.on('message', async(message) => {
     removeHook(message);
     return;
   }
-
-  if(message.content.includes('/addme')) {
-    addUserToGroup(message);
-    return;
-  }
 });
 
 function createHook(message) {
@@ -83,37 +78,5 @@ function removeHook(message) {
   });
 }
 
-function addUserToGroup(message) {
-  const group = message.content.split(' ')[1];
-  connect(async (databaseClient) => {
-    const db = databaseClient.db("schedule");
-    const hooksCollection = db.collection("hooks");
-
-    const foundHook = await hooksCollection.findOne({group});
-    const userToLogging = {
-      id: message.member.id,
-      real_name: message.member.user.username
-    }
-    if(!foundHook){
-      message.reply(`Канал **${group}** не найден. Обратитесь к координатору курса за помощью.`);
-      Logger.sendUserTextMessage(userToLogging, message.channel.name, `Неудачная попытка пользователя перенестись в канал *${group}*. ☹️`, discordBot);
-      return;
-    }
-
-    const channel = discordBot.channels.cache.get(foundHook.channelId);
-    channel.updateOverwrite(message.member, {
-      SEND_MESSAGES: true,
-      VIEW_CHANNEL: true
-    })
-    .then(res => {
-      message.reply(`Успешно добавил вас в канал **${group}**`);
-      Logger.sendUserTextMessage(userToLogging, message.channel.name, `Удачная попытка пользователя перенестись в канал *${group}*. 🎉`, discordBot);
-    })
-    .catch(err => {
-      message.reply('Кажется, у меня возникла какая-то ошика');
-      Logger.sendUserTextMessage(userToLogging, message.channel.name, `Неудачная попытка пользователя перенестись в канал *${group}*. ☹️ \n ОШИБКА: ${JSON.stringify(err)} \n`, discordBot);
-    });
-  });
-}
 
 module.exports = discordBot;
