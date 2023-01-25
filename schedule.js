@@ -1,10 +1,7 @@
-const request = require('request');
+const { URL } = process.env;
 const telegramBot = require('./telegramBot');
 const discordBot = require('./discordBot');
-
 const Logger = require('./util/logger');
-const { getEditImage } = require('./util/imageEditor');
-const getLessonText = require('./util/lessonFormatter');
 const { connect } = require('./util/mongoConnector');
 
 const sleep = async () => {
@@ -21,14 +18,14 @@ const formatLessonForLogger = (lessonObject) => {
 }
 
 function schedule(){
+  Logger.sendMessage("Запускаю отправку всех сообщений", discordBot);
   connect(async dataBaseClient => {
     const db = dataBaseClient.db("schedule");
     const lessonsCollection = db.collection("lessons");
     const hooksCollection = db.collection("hooks");
 
     const today = new Date().toISOString().slice(0,10); // сегодня в формате YYYY-MM-DD
-    const lessons = await lessonsCollection.find({date:today, isSent: false}).toArray() || [];
-    const earlyNotifications = await lessonsCollection.find({earlyNotificationDate:today}).toArray() || [];
+    const lessons = await lessonsCollection.find({date:today, isSent: false}).toArray() || []; // TODO: проверить, почему отправляются все сообщения
     
     const sender = async () => {
       for(const lesson of lessons){
@@ -36,15 +33,42 @@ function schedule(){
         await sleep();
         sendLessonNotification(lesson, hook || {});
       }
-
-      for(const notification of earlyNotifications){
-        const hook = await hooksCollection.findOne({group: notification.group});
-        await sleep();
-        sendLessonNotification(notification, hook || {}, true);
-      }
     }
     await sender();
     await lessonsCollection.updateMany({date:today}, {$set: {isSent: true}});
+  });
+}
+
+function startTemplates() {
+  Logger.sendMessage("Запускаю отправку всех шаблонов", discordBot);
+  const today = new Date().toISOString().slice(0,10); // сегодня в формате YYYY-MM-DD
+
+  const configer = {
+    telegram: schedule.sendTelegramMessage,
+    discord: schedule.sendDiscordMessage,
+  };
+
+  connect(async (client) => {
+    const db = client.db("schedule");
+    const templatesCollection = db.collection("templates");
+    const hooksCollection = db.collection("hooks");
+
+    const todayTemplates = await templatesCollection.find({"schedule.date": today}).toArray() || [];
+
+    for (let i = 0; i < todayTemplates.length; i++) {
+      const template = todayTemplates[i];
+      const hook = await hooksCollection.findOne({channel: template.schedule.channel});
+      const sender = configer[hook.messegerType];
+
+      const loggerMessage = {
+        "Тип сообщения": "Шаблон по расписанию", 
+        "Имя шаблона": template.title,
+        "Канал": hook.channel,
+        "Дата": template.schedule.date || "неизвестно",
+      }
+      sender(hook, template.value, loggerMessage);
+      await templatesCollection.findOneAndUpdate({id: template.id}, {$unset: {schedule:""}})
+    }
   });
 }
 
@@ -61,168 +85,90 @@ function sendLessonNotification(lesson, hook, isEarly = false){
 
   lesson.date = lesson.date.split('-').reverse().join('.');
   const configuration = {
-    slack: (lesson, hook) => {
-      let text = "<!channel> \n" + (isEarly ? lesson.earlyNotificationText : getLessonText(lesson));
-      data = [
-        {
-          "type": "section",
-          text:{
-            "type": "mrkdwn",
-            text
-          },
-        },{
-          "type": "image",
-          "image_url": encodeURI(`${process.env.URL}/api/images/getModifiedImage?user=${lesson.teacher}&time=${lesson.time}&lessonName=${lesson.lecture}`),
-          "alt_text": "изображение с анонсом занятия"
-        }
-      ];
-
-      data = {
-        text,
-        blocks: data
-      }
-      const loggerObject = {
-        "Тема занятия": lesson.lecture,
-        "Преподаватель": lesson.teacher,
-        "Группа": lesson.group,
-        "Дата": lesson.date.split('-').reverse().join('.'),
-        "Время": lesson.time,
-        "Является записью": lesson.isRecordedVideo,
-      }
-      if(isEarly){
-        loggerObject["Дата предварительного уведомления"] = lesson.earlyNotificationDate.split('-').reverse().join('.');
-        loggerObject["Дата предварительного уведомления"] = lesson.earlyNotificationDate.split('-').reverse().join('.');
-      }
-      sendSlackMessage(hook, data, loggerObject);
-    },
     telegram: (lesson, hook) => {
-      let text = isEarly ? lesson.earlyNotificationText : getLessonText(lesson);
-      const actionCallBack = getEditImage(image => {
-        telegramBot.sendPhoto(hook.channelId, image, {caption: text}).then((sentMessage) => {
-          telegramBot.pinChatMessage(sentMessage.chat.id, sentMessage.message_id);
-          Logger.sendMessage(`Уведомление успешно отправлено в *телеграмм* \n \`\`\` ${JSON.stringify(lesson, null, 2)} \`\`\` `, discordBot);
-        }).catch(error => Logger.sendMessage(`*Ошибка!* ${error.message}`, discordBot))
-      });
-      actionCallBack(lesson.teacher, lesson.lecture, lesson.time);
+      const {group, image: imageName, text} = lesson;
+      const imageLink = `${URL}api/images/getImageByName?name=${imageName}`
+
+      telegramBot.sendPhoto(hook.channelId, imageLink, {caption: text}).then((sentMessage) => {
+        telegramBot.pinChatMessage(sentMessage.chat.id, sentMessage.message_id).catch(error => Logger.sendMessage(`У бота нет прав для закрепления сообщения`, discordBot, discordBot));
+        Logger.sendMessage(`Уведомление успешно отправлено в *телеграмм* \n \`\`\` Группа: ${group} \`\`\` `, discordBot);
+      }).catch(error => Logger.sendMessage(`*Ошибка!* ${error.message}`, discordBot))
     },
     discord: (lesson, hook) => {
-      let text = '@here \n' + (isEarly ? lesson.earlyNotificationText : getLessonText(lesson));
-      const loggerObject = {
-        "Тема занятия": lesson.lecture,
-        "Преподаватель": lesson.teacher,
-        "Группа": lesson.group,
-        "Дата": lesson.date.split('-').reverse().join('.'),
-        "Время": lesson.time,
-        "Является записью": lesson.isRecordedVideo,
-      }
-      if(isEarly){
-        loggerObject["Дата предварительного уведомления"] = lesson.earlyNotificationDate.split('-').reverse().join('.');
-        loggerObject["Дата предварительного уведомления"] = lesson.earlyNotificationDate.split('-').reverse().join('.');
-      }
-
       const channel = discordBot.channels.cache.get(hook.channelId);
-      const actionCallBack = getEditImage(image => {
-        channel.send(text, { files: [{ attachment: image }] }).then(success => {
-          let sendMessage = "Уведомление успешно отправлено в дискорд \n"
-            for(prop in loggerObject){
-              sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
-            }
-            Logger.sendMessage(sendMessage, discordBot);
-        }).catch(err => {
-          connect(async dataBaseClient => {
-            const db = dataBaseClient.db("schedule");
-            const coordinatorsCollection = db.collection("coordinators");
-            const coordinator = await coordinatorsCollection.findOne({course});
-            const coordinatorNotification = (coordinator && `<@${coordinator.id}>`) || "@here";
-            let sendMessage = `*FATAL ERROR!!!* ${coordinatorNotification} Неизвестная ошибка. \n\n`;
-            
-            for(prop in loggerObject){
-              sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
-            }
+      const {group, image: imageName, text, teacher, date, time, lecture} = lesson;
+      const loggerObject = {
+        "Тема занятия": lecture,
+        "Преподаватель": teacher,
+        "Группа": group,
+        "Изображение": imageName,
+        "Дата": date.split('-').reverse().join('.'),
+        "Время": time,
+      }
+      const imageLink = `${URL}api/images/getImageByName?name=${imageName}`;
 
-            sendMessage += JSON.stringify(err);
-            Logger.sendMessage(sendMessage, discordBot);
-          });
+      channel.send(text, { files: [{ attachment: imageLink, name: 'picture.png' }] }).then(success => {
+        let sendMessage = "Уведомление успешно отправлено в дискорд \n"
+          for(prop in loggerObject){
+            sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
+          }
+          Logger.sendMessage(sendMessage, discordBot);
+      }).catch(err => {
+        connect(async dataBaseClient => {
+          const db = dataBaseClient.db("schedule");
+          const coordinatorsCollection = db.collection("coordinators");
+          const coordinator = await coordinatorsCollection.findOne({group});
+          const coordinatorNotification = (coordinator && `<@${coordinator.id}>`) || "@here";
+          let sendMessage = `*FATAL ERROR!!!* ${coordinatorNotification} Неизвестная ошибка. \n\n`;
+          
+          for(prop in loggerObject){
+            sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
+          }
+
+          sendMessage += JSON.stringify(err);
+          Logger.sendMessage(sendMessage, discordBot);
         });
       });
-      actionCallBack(lesson.teacher, lesson.lecture, lesson.time);
     }
   }
 
   configuration[hook.messegerType] && configuration[hook.messegerType](lesson, hook); // Вызов конфигурации
 }
 
-function sendSlackMessage(hook, data, loggerObject = {}){
-  const uri = hook.value;
-  let sendData = data;
-  if (typeof data === "string"){
-    sendData = {
-      blocks: [
-      {
-        "type": "section",
-        text:{
-          "type": "mrkdwn",
-          text: data
-        }
-      }
-    ]}; 
-  }
-    
-  options = {
-    uri,
-    method: 'POST',
-    json: sendData
-  }
-  request(options, (error, response, body) => {
-    const course = (loggerObject['Группа'] || "-").split("-")[0].toUpperCase();
-    connect(async dataBaseClient => {
-      const db = dataBaseClient.db("schedule");
-      const coordinatorsCollection = db.collection("coordinators");
-      const coordinator = await coordinatorsCollection.findOne({course});
-      const coordinatorNotification = (coordinator && `<@${coordinator.id}>`) || "@here";
-      let sendMessage = response && response.statusCode === 200 ? 
-      "Уведомление успешно отправлено в слак \n" :
-      `*FATAL ERROR!!!* ${coordinatorNotification} Неизвестная ошибка. \nstatusCode: ${response.statusCode}\n`;
-      
-      for(prop in loggerObject){
-        sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
-      }
-      Logger.sendMessage(sendMessage, discordBot);
-    });
-  });
-}
-
-function sendTelegramMessage(hook, message, loggerObject = {}){
+function sendTelegramMessage(hook, message, imageLink, loggerObject = {}){
   const { channelId } = hook;
 
-  telegramBot.sendMessage(channelId, message).then((sentMessage) => {
-    telegramBot.pinChatMessage(sentMessage.chat.id, sentMessage.message_id);
-
-    let sendMessage = "Сообщение успешно отправлено в телеграмм \n";
-    for(prop in loggerObject){
-      sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
-    }
-    Logger.sendMessage(sendMessage, discordBot);
-  });
+  (imageLink ? 
+    telegramBot.sendPhoto(channelId, imageLink, {caption: message}) :
+    telegramBot.sendMessage(channelId, message)).
+      then((sentMessage) => {
+        telegramBot.pinChatMessage(sentMessage.chat.id, sentMessage.message_id).catch(error => Logger.sendMessage(`У бота нет прав для закрепления сообщения`, discordBot, discordBot));
+        let sendMessage = "Сообщение успешно отправлено в телеграмм \n";
+        for(prop in loggerObject){
+          sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
+        }
+        Logger.sendMessage(sendMessage, discordBot);
+    });
 }
 
-function sendDiscordMessage(hook, message, loggerObject = {}){
+function sendDiscordMessage(hook, message, imageLink, loggerObject = {}){
   const channel = discordBot.channels.cache.get(hook.channelId);
-
-  channel.send(message).then(success => {
+  const files = imageLink ? { files: [{ attachment: imageLink, name: 'picture.png' }] } : undefined;
+  
+  channel.send(message, files).then(success => {
     let sendMessage = "Уведомление успешно отправлено в дискорд \n"
       for(prop in loggerObject){
         sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
       }
       Logger.sendMessage(sendMessage, discordBot);
-  })
+  });
 }
 
 
 module.exports = {
   scheduler: schedule,
-  sendSlackMessage,
   sendTelegramMessage,
   sendDiscordMessage,
-  sendLessonNotification
+  sendLessonNotification,
+  startTemplates,
 };

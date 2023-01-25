@@ -11,30 +11,6 @@ router.get("/", (request, response) => {
   });
 });
 
-router.post("/add", (request, response) => {
-  let { value, group, channel, channelId } = request.body;
-  if(!value || !group || !channel){
-    response.json({ success: false, error: "Отсутствуют данные"});
-    return;
-  }
-
-  connect(async (client) => {
-    const db = client.db("schedule");
-    const hooksCollection = db.collection("hooks");
-
-    foundHooks = await hooksCollection.find({$or: [{value},{group},{channel}]}).toArray() || [];
-    if(foundHooks.length > 0){
-      response.json({ success: false, error: "Хук с такими значениями уже существует"});
-      return;
-    }
-
-    channel = channel.toLowerCase();
-    await hooksCollection.insertOne({ value, group, channel, channelId, messegerType: "slack" });
-    foundHooks = await hooksCollection.find({}).toArray();
-    response.json({ success: true, hooks: foundHooks});
-  });
-});
-
 router.post("/remove", (request, response) => {
   let { value, channelId } = request.body;
   if(!channelId){

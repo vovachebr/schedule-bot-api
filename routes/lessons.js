@@ -2,20 +2,14 @@ const schedule = require('../schedule');
 const uuid = require('node-uuid');
 const router = require('express').Router();
 const { connect } = require('./../util/mongoConnector');
+const Logger = require('../util/logger');
+const discordBot = require('../discordBot');
 
 router.post("/add", (request, response) => {
-  let { group, date, time, teacher, lecture, additional, isRecordedVideo } = request.body;
-  let { earlyNotificationDate, earlyNotificationText } = request.body;
-
-  if(earlyNotificationDate){
-    earlyNotificationDate = new Date(earlyNotificationDate).toISOString().slice(0,10);
-  }
+  let { group, date, time, teacher, lecture, text, image } = request.body;
 
   let error = "";
   for (const prop in request.body) {
-    if(['earlyNotificationDate', 'earlyNotificationText', 'isRecordedVideo'].includes(prop))
-      continue;
-
     if (request.body.hasOwnProperty(prop)) {
       const element = request.body[prop];
       
@@ -39,7 +33,7 @@ router.post("/add", (request, response) => {
       return
     }
 
-    await lessonsCollection.insertOne({ group, date, time, teacher, lecture, additional, isRecordedVideo, id: uuid.v1(), isSent: false, earlyNotificationDate, earlyNotificationText});
+    await lessonsCollection.insertOne({ group, date, time, teacher, lecture, id: uuid.v1(), isSent: false, text, image});
     response.json({ success: true });
   });
 });
@@ -96,6 +90,16 @@ router.get("/getLastLecture:lecture?:course?", (request, response) => {
     }else{
       response.json({ success: false, error: "Не найдено"});
     }
+  });
+});
+
+router.get("/removeAllSentLessons", async function(request, response) {
+  connect(async (client) => {
+    const db = client.db("schedule");
+    const lessonsCollection = db.collection("lessons");
+    lessonsCollection.deleteMany({isSent: { $eq: true }});
+    Logger.sendMessage("Удалены все отправленные сообщения", discordBot);
+    response.send("Удалены все отправленные сообщения");
   });
 });
 

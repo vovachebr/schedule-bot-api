@@ -1,6 +1,5 @@
 const Discord = require('discord.js');
 const { connect } = require('./../util/mongoConnector');
-const Logger = require('../util/logger');
 
 const discordBot = new Discord.Client();
 

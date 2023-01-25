@@ -7,6 +7,16 @@ const bodyParser = require('body-parser');
 const api = require('./routes').router;
 const telegammBot = require('./telegramBot');
 const discordBot = require('./discordBot');
+const CronJob = require('cron').CronJob;
+const schedule = require('./schedule');
+const job = new CronJob(
+  '0 0 10 * * *',
+  function() {
+    schedule.schedule();
+    schedule.startTemplates();
+  }
+);
+job.start();
 
 discordBot.login(DISCORD_BOT_TOKEN);
 const app = express();

@@ -1,19 +1,16 @@
 const router = require('express').Router();
 const multer = require('multer');
 const { connect } = require('./../util/mongoConnector');
-const { getEditImage } = require('./../util/imageEditor');
 
 const upload = multer({ encoding: 'unicode' });
 router.post("/addImage", upload.single('avatar'), async (request, response) => {
-  const typeWithName = request.file.originalname.split('.')[0].trim();
-  let [name, position] = typeWithName.split("_");
-  const type = 'преподаватель';
+  const name = request.file.originalname.split('.')[0].trim();
+  const type = 'фон';
   
   const finalImg = {
     image:  Buffer.from(request.file.buffer),
     type,
     name,
-    position
   };
   connect(async (client) => {
     const db = client.db("schedule");
@@ -72,13 +69,6 @@ router.get("/removeImageByName:name?",async (request, response) => {
     data.forEach(a => { delete a.image; delete a._id});
     response.json({ success: true, data});
   });
-});
-
-router.get("/getModifiedImage:user?:time?:lessonName?", async function(request, response) {
-  let { user, lessonName, time } = request.query;
-  const actionCallBack = getEditImage(image => response.send(image));
-  response.contentType('image/jpeg');
-  actionCallBack(user, lessonName, time);
 });
 
 module.exports = router;

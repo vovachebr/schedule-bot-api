@@ -1,11 +1,12 @@
 
 const router = require('express').Router();
+const { URL } = process.env;
+
 const schedule = require('../schedule');
 const { connect } = require('./../util/mongoConnector');
 
 const hooks = require('./hooks');
 const lessons = require('./lessons');
-const commands = require('./commands');
 const templates = require('./templates');
 const images = require('./images');
 const defaultLessons = require('./defaultLessons');
@@ -13,7 +14,6 @@ const coordinators = require('./coordinators');
 
 router.use('/hooks', hooks);
 router.use('/lessons', lessons);
-router.use('/commands', commands);
 router.use('/templates', templates);
 router.use('/images', images);
 router.use('/defaultLessons', defaultLessons);
@@ -21,13 +21,14 @@ router.use('/coordinators', coordinators);
 
 router.get("/start", function(request, response) {
   schedule.scheduler();
-  response.send("Запрос отправлен в обработку");
+  response.send(`Запрос отправлен в обработку.`);
 })
 
 router.post("/sendInstantMessage", (request, response) => {
-  const {channel, text} = request.body;
+  const {channel, text, imageLink, imageName} = request.body;
+
+  const imageToSend = imageName ? `${URL}api/images/getImageByName?name=${imageName}` : imageLink
   const configer = {
-    slack: schedule.sendSlackMessage,
     telegram: schedule.sendTelegramMessage,
     discord: schedule.sendDiscordMessage,
   };
@@ -41,9 +42,10 @@ router.post("/sendInstantMessage", (request, response) => {
     const messageToLogger = {
       "Тип": "Текстовое сообщение",
       "Группа": hook.channel,
-      "Текст сообщения": text
+      "Текст сообщения": text,
+      "Cсылка на изображение": imageToSend,
     };
-    sender(hook, text, messageToLogger);
+    sender(hook, text, imageToSend, messageToLogger);
     response.json({ success: true});
   });
 });

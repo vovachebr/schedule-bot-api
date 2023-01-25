@@ -6,36 +6,8 @@ const schedule = require('../schedule');
 const { connect } = require('./../util/mongoConnector');
 
 router.get("/start", (require, response) => {
-  const today = new Date().toISOString().slice(0,10); // сегодня в формате YYYY-MM-DD
-
-  const configer = {
-    slack: schedule.sendSlackMessage,
-    telegram: schedule.sendTelegramMessage
-  };
-
-  connect(async (client) => {
-    const db = client.db("schedule");
-    const templatesCollection = db.collection("templates");
-    const hooksCollection = db.collection("hooks");
-
-    const todayTemplates = await templatesCollection.find({"schedule.date": today}).toArray() || [];
-
-    for (let i = 0; i < todayTemplates.length; i++) {
-      const template = todayTemplates[i];
-      const hook = await hooksCollection.findOne({channel: template.schedule.channel});
-      const sender = configer[hook.messegerType];
-
-      const loggerMessage = {
-        "Тип сообщения": "Шаблон по расписанию", 
-        "Имя шаблона": template.title,
-        "Канал": hook.channel,
-        "Дата": template.schedule.date || "неизвестно",
-      }
-      sender(hook, template.value, loggerMessage);
-      await templatesCollection.findOneAndUpdate({id: template.id}, {$unset: {schedule:""}})
-    }
-    response.json({ success: true});
-  });
+  schedule.startTemplates();
+  response.json({ success: true});
 });
 
 router.get("/:id?", (request, response) => {
