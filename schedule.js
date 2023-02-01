@@ -87,7 +87,7 @@ function sendLessonNotification(lesson, hook, isEarly = false){
   const configuration = {
     telegram: (lesson, hook) => {
       const {group, image: imageName, text} = lesson;
-      const imageLink = `${URL}api/images/getImageByName?name=${imageName}`
+      const imageLink = `${URL}/api/images/getImageByName?name=${imageName}`
 
       telegramBot.sendPhoto(hook.channelId, imageLink, {caption: text}).then((sentMessage) => {
         telegramBot.pinChatMessage(sentMessage.chat.id, sentMessage.message_id).catch(error => Logger.sendMessage(`У бота нет прав для закрепления сообщения`, discordBot, discordBot));
@@ -105,7 +105,7 @@ function sendLessonNotification(lesson, hook, isEarly = false){
         "Дата": date.split('-').reverse().join('.'),
         "Время": time,
       }
-      const imageLink = `${URL}api/images/getImageByName?name=${imageName}`;
+      const imageLink = `${URL}/api/images/getImageByName?name=${imageName}`;
 
       channel.send(text, { files: [{ attachment: imageLink, name: 'picture.png' }] }).then(success => {
         let sendMessage = "Уведомление успешно отправлено в дискорд \n"

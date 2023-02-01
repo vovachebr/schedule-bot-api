@@ -27,7 +27,7 @@ router.get("/start", function(request, response) {
 router.post("/sendInstantMessage", (request, response) => {
   const {channel, text, imageLink, imageName} = request.body;
 
-  const imageToSend = imageName ? `${URL}api/images/getImageByName?name=${imageName}` : imageLink
+  const imageToSend = imageName ? `${URL}/api/images/getImageByName?name=${imageName}` : imageLink
   const configer = {
     telegram: schedule.sendTelegramMessage,
     discord: schedule.sendDiscordMessage,
