@@ -3,6 +3,7 @@ const telegramBot = require('./telegramBot');
 const discordBot = require('./discordBot');
 const Logger = require('./util/logger');
 const { connect } = require('./util/mongoConnector');
+const getLessonText = require('./util/lessonFormatter');
 
 const sleep = async () => {
   return await new Promise(resolve => setTimeout(resolve, 15000))//задержка 15сек
@@ -86,17 +87,19 @@ function sendLessonNotification(lesson, hook, isEarly = false){
   lesson.date = lesson.date.split('-').reverse().join('.');
   const configuration = {
     telegram: (lesson, hook) => {
-      const {group, image: imageName, text} = lesson;
+      const {group, image: imageName} = lesson;
+      const textToSend = getLessonText(lesson);
       const imageLink = `${URL}/api/images/getImageByName?name=${imageName}`
 
-      telegramBot.sendPhoto(hook.channelId, imageLink, {caption: text}).then((sentMessage) => {
+      telegramBot.sendPhoto(hook.channelId, imageLink, {parse_mode: 'Markdown', caption: textToSend}).then((sentMessage) => {
         telegramBot.pinChatMessage(sentMessage.chat.id, sentMessage.message_id).catch(error => Logger.sendMessage(`У бота нет прав для закрепления сообщения`, discordBot, discordBot));
         Logger.sendMessage(`Уведомление успешно отправлено в *телеграмм* \n \`\`\` Группа: ${group} \`\`\` `, discordBot);
       }).catch(error => Logger.sendMessage(`*Ошибка!* ${error.message}`, discordBot))
     },
     discord: (lesson, hook) => {
       const channel = discordBot.channels.cache.get(hook.channelId);
-      const {group, image: imageName, text, teacher, date, time, lecture} = lesson;
+      const {group, image: imageName, teacher, date, time, lecture} = lesson;
+      const textToSend = getLessonText(lesson);
       const loggerObject = {
         "Тема занятия": lecture,
         "Преподаватель": teacher,
@@ -107,7 +110,7 @@ function sendLessonNotification(lesson, hook, isEarly = false){
       }
       const imageLink = `${URL}/api/images/getImageByName?name=${imageName}`;
 
-      channel.send(text, { files: [{ attachment: imageLink, name: 'picture.png' }] }).then(success => {
+      channel.send(textToSend, { files: [{ attachment: imageLink, name: 'picture.png' }] }).then(success => {
         let sendMessage = "Уведомление успешно отправлено в дискорд \n"
           for(prop in loggerObject){
             sendMessage += `${prop}: *${loggerObject[prop]}* \n`;
