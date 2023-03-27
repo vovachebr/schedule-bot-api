@@ -48,7 +48,11 @@ router.get("/getImageByName:name?",async (request, response) => {
 
     let imageElement = await imagesCollection.findOne({name});
     response.contentType('image/jpeg');
-    response.send(imageElement.image.buffer);
+    try {
+      response.send(imageElement.image.buffer);
+    } catch (e) {
+      Logger.sendMessage(`Ошибка при получении изображения: ${JSON.stringify(e)}, Изображение: ${JSON.stringify(imageElement)}`, discordBot);
+    }
   })
 });
 
