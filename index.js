@@ -12,7 +12,7 @@ const schedule = require('./schedule');
 const job = new CronJob(
   '0 0 10 * * *',
   function() {
-    schedule.schedule();
+    schedule.scheduler();
     schedule.startTemplates();
   }
 );
