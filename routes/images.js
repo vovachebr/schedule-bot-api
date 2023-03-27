@@ -1,5 +1,7 @@
 const router = require('express').Router();
 const multer = require('multer');
+const discordBot = require('./../discordBot');
+const Logger = require('./../util/logger');
 const { connect } = require('./../util/mongoConnector');
 
 const upload = multer({ encoding: 'unicode' });
@@ -51,7 +53,8 @@ router.get("/getImageByName:name?",async (request, response) => {
     try {
       response.send(imageElement.image.buffer);
     } catch (e) {
-      Logger.sendMessage(`Ошибка при получении изображения: ${JSON.stringify(e)}, Изображение: ${JSON.stringify(imageElement)}`, discordBot);
+      Logger.sendMessage(`Ошибка при получении изображения: ${name}`, discordBot);
+      response.status(404).send();
     }
   })
 });
