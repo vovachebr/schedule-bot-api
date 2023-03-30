@@ -14,7 +14,10 @@ const job = new CronJob(
   function() {
     schedule.scheduler();
     schedule.startTemplates();
-  }
+  },
+  null,
+  true,
+  'Europe/Moscow'
 );
 job.start();
 
