@@ -6,7 +6,7 @@ const Logger = require('../util/logger');
 const discordBot = require('../discordBot');
 
 router.post("/add", (request, response) => {
-  let { group, date, time, teacher, lecture, text, image } = request.body;
+  let { group, date, time, teacher, lecture, text, image, additional } = request.body;
 
   let error = "";
   for (const prop in request.body) {
@@ -33,7 +33,7 @@ router.post("/add", (request, response) => {
       return
     }
 
-    await lessonsCollection.insertOne({ group, date, time, teacher, lecture, id: uuid.v1(), isSent: false, text, image});
+    await lessonsCollection.insertOne({ group, date, time, teacher, lecture, additional, id: uuid.v1(), isSent: false, text, image});
     response.json({ success: true });
   });
 });
