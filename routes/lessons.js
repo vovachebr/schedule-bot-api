@@ -56,7 +56,7 @@ router.post("/remove", (request, response) => {
 });
 
 router.post("/update", (request, response) => {
-  let { id, group, date, time, teacher, lecture, isSent } = request.body;
+  let { id, group, date, time, teacher, lecture, isSent, image } = request.body;
   if(!id){
     response.json({ success: false, error: "id отсутствует"});
     return;
@@ -66,7 +66,7 @@ router.post("/update", (request, response) => {
     const db = client.db("schedule");
     const lessonsCollection = db.collection("lessons");
 
-    await lessonsCollection.findOneAndUpdate({id}, {$set: {group, date, time, teacher, lecture, isSent}});
+    await lessonsCollection.findOneAndUpdate({id}, {$set: {group, date, time, teacher, lecture, isSent, image}});
     const lessons = await lessonsCollection.find({}).toArray();
     response.json({ success: true, lessons: lessons || []});
   });
