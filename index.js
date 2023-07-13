@@ -1,6 +1,7 @@
 require('dotenv').config();
 const { PORT, DISCORD_BOT_TOKEN } = process.env;
 const express = require('express');
+const basicAuth = require('express-basic-auth');
 const path = require('path');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
@@ -23,6 +24,10 @@ job.start();
 
 discordBot.login(DISCORD_BOT_TOKEN);
 const app = express();
+app.use(basicAuth({
+  authorizer: (username, password) => !!(username && password),
+  unauthorizedResponse: () => 'No credentials provided'
+}));
 app.use(morgan('tiny'));
 
 app.use(bodyParser.json());
