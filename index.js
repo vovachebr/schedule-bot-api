@@ -24,10 +24,6 @@ job.start();
 
 discordBot.login(DISCORD_BOT_TOKEN);
 const app = express();
-app.use(basicAuth({
-  authorizer: (username, password) => !!(username && password),
-  unauthorizedResponse: () => 'No credentials provided'
-}));
 app.use(morgan('tiny'));
 
 app.use(bodyParser.json());

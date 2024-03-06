@@ -1,7 +1,9 @@
 const Discord = require('discord.js');
 const { connect } = require('./../util/mongoConnector');
 
-const discordBot = new Discord.Client();
+const discordBot = new Discord.Client({
+  restRequestTimeout: 60000
+});
 
 discordBot.on('ready', async() => {
   console.log('Hello!');

@@ -73,7 +73,7 @@ function startTemplates() {
   });
 }
 
-function sendLessonNotification(lesson, hook, isEarly = false){
+function sendLessonNotification(lesson, hook){
   if(!hook){
     Logger.sendMessage("*Ошибка!* Не найден хук для занятия. Отправка не была выполнена. \n" + formatLessonForLogger(lesson), discordBot);
     return;
@@ -98,6 +98,10 @@ function sendLessonNotification(lesson, hook, isEarly = false){
     },
     discord: (lesson, hook) => {
       const channel = discordBot.channels.cache.get(hook.channelId);
+      // if(!channel) {
+      //   console.log(channel, hook);
+      // }
+      /// return;
       const {group, image: imageName, teacher, date, time, lecture} = lesson;
       const textToSend = getLessonText(lesson);
       const loggerObject = {
@@ -135,7 +139,11 @@ function sendLessonNotification(lesson, hook, isEarly = false){
     }
   }
 
-  configuration[hook.messegerType] && configuration[hook.messegerType](lesson, hook); // Вызов конфигурации
+  try {
+    configuration[hook.messegerType] && configuration[hook.messegerType](lesson, hook); // Вызов конфигурации
+  } catch (error) {
+    Logger.sendMessage(JSON.stringify({lesson, hook, error}), discordBot);
+  }
 }
 
 function sendTelegramMessage(hook, message, imageLink, loggerObject = {}){
